@@ -5,11 +5,13 @@ import 'SubjectQueries.dart';
 import 'SubjectResults.dart';
 import 'SubjectAttendance.dart';
 import 'SubjectChat.dart';
+import 'SubjectAnnouncementsScreen.dart';
 
 class SubjectDashboardScreen extends StatefulWidget {
   final Map<String, dynamic> subject;
 
-  const SubjectDashboardScreen({Key? key, required this.subject}) : super(key: key);
+  const SubjectDashboardScreen({Key? key, required this.subject})
+    : super(key: key);
 
   @override
   _SubjectDashboardScreenState createState() => _SubjectDashboardScreenState();
@@ -48,27 +50,42 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
           SizedBox(height: 24),
           _buildSectionPreview(
             title: 'Recent Announcements',
-            onViewAll: () => _navigateToScreen(0),
+            onViewAll:
+                () => _navigateToScreen(
+                  SubjectAnnouncementsScreen(subject: widget.subject),
+                ),
             child: _buildAnnouncementsPreview(),
           ),
           _buildSectionPreview(
             title: 'Upcoming Assignments',
-            onViewAll: () => _navigateToScreen(1),
+            onViewAll:
+                () => _navigateToScreen(
+                  SubjectAssignmentsScreen(subject: widget.subject),
+                ),
             child: _buildAssignmentsPreview(),
           ),
           _buildSectionPreview(
             title: 'Pending Queries',
-            onViewAll: () => _navigateToScreen(2),
+            onViewAll:
+                () => _navigateToScreen(
+                  SubjectQueriesScreen(subject: widget.subject),
+                ),
             child: _buildQueriesPreview(),
           ),
           _buildSectionPreview(
             title: 'Attendance Summary',
-            onViewAll: () => _navigateToScreen(4),
+            onViewAll:
+                () => _navigateToScreen(
+                  SubjectAttendanceScreen(subject: widget.subject),
+                ),
             child: _buildAttendancePreview(),
           ),
           _buildSectionPreview(
             title: 'Recent Messages',
-            onViewAll: () => _navigateToScreen(5), // Navigate to chat screen
+            onViewAll:
+                () => _navigateToScreen(
+                  SubjectChatScreen(subject: widget.subject),
+                ),
             child: _buildChatPreview(),
           ),
         ],
@@ -124,15 +141,14 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
     );
   }
 
-  void _navigateToScreen(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+  void _navigateToScreen(Widget screen) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
   }
 
   @override
   Widget build(BuildContext context) {
-    final subjectColor = widget.subject['color'] ?? Theme.of(context).primaryColor;
+    final subjectColor =
+        widget.subject['color'] ?? Theme.of(context).primaryColor;
 
     return Scaffold(
       appBar: AppBar(
@@ -148,26 +164,30 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
         centerTitle: true,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
         ),
-        actions: _currentIndex == 5 ? [ // Show chat-specific actions
-          IconButton(
-            icon: Icon(Icons.info_outline),
-            onPressed: () {
-              // Show chat info
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.people_outline),
-            onPressed: () {
-              // Show participants
-            },
-          ),
-        ] : null,
+        actions:
+            _currentIndex == 5
+                ? [
+                  IconButton(
+                    icon: Icon(Icons.info_outline),
+                    onPressed: () {
+                      // Show chat info
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.people_outline),
+                    onPressed: () {
+                      // Show participants
+                    },
+                  ),
+                ]
+                : null,
       ),
-      body: _screens.isNotEmpty ? _screens[_currentIndex] : Center(child: CircularProgressIndicator()),
+      body:
+          _screens.isNotEmpty
+              ? _screens[_currentIndex]
+              : Center(child: CircularProgressIndicator()),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         selectedItemColor: subjectColor,
@@ -200,7 +220,7 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
             activeIcon: Icon(Icons.calendar_today),
             label: 'Attendance',
           ),
-          BottomNavigationBarItem( // Added chat tab
+          BottomNavigationBarItem(
             icon: Icon(Icons.chat_bubble_outline),
             activeIcon: Icon(Icons.chat_bubble),
             label: 'Chat',
@@ -208,54 +228,56 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
         ],
         onTap: (index) => setState(() => _currentIndex = index),
       ),
-      floatingActionButton: _currentIndex == 0 ? null : _buildFloatingActionButton(),
+      floatingActionButton:
+          _currentIndex == 0 ? null : _buildFloatingActionButton(),
     );
   }
 
-
   Widget? _buildFloatingActionButton() {
-    final subjectColor = widget.subject['color'] ?? Theme.of(context).primaryColor;
+    final subjectColor =
+        widget.subject['color'] ?? Theme.of(context).primaryColor;
 
-    // switch (_currentIndex) {
-    //   case 1: // Assignments
-    //     return FloatingActionButton(
-    //       backgroundColor: subjectColor,
-    //       child: Icon(Icons.add),
-    //       onPressed: () {
-    //         // Add new assignment
-    //       },
-    //     );
-    //   case 2: // Queries
-    //     return FloatingActionButton(
-    //       backgroundColor: subjectColor,
-    //       child: Icon(Icons.add_comment),
-    //       onPressed: () {
-    //         // Add new query
-    //       },
-    //     );
-      // case 3: // Results
-      //   return FloatingActionButton(
-      //     backgroundColor: subjectColor,
-      //     child: Icon(Icons.download),
-      //     onPressed: () {
-      //       // Export results
-      //     },
-      //   );
-    //   case 4: // Attendance
-    //     return FloatingActionButton(
-    //       backgroundColor: subjectColor,
-    //       child: Icon(Icons.date_range),
-    //       onPressed: () {
-    //         // View attendance calendar
-    //       },
-    //     );
-    //   default:
-    //     return null;
-    // }
+    switch (_currentIndex) {
+      case 1: // Assignments
+        return FloatingActionButton(
+          backgroundColor: subjectColor,
+          child: Icon(Icons.add),
+          onPressed: () {
+            // Add new assignment
+          },
+        );
+      case 2: // Queries
+        return FloatingActionButton(
+          backgroundColor: subjectColor,
+          child: Icon(Icons.add_comment),
+          onPressed: () {
+            // Add new query
+          },
+        );
+      case 3: // Results
+        return FloatingActionButton(
+          backgroundColor: subjectColor,
+          child: Icon(Icons.download),
+          onPressed: () {
+            // Export results
+          },
+        );
+      case 4: // Attendance
+        return FloatingActionButton(
+          backgroundColor: subjectColor,
+          child: Icon(Icons.date_range),
+          onPressed: () {
+            // View attendance calendar
+          },
+        );
+      default:
+        return null;
+    }
   }
 
   Widget _buildQuickStatsPanel() {
-    final subjectColor = widget.subject['color'] ?? Theme.of(context).primaryColor;
+    final subjectColor =
+        widget.subject['color'] ?? Theme.of(context).primaryColor;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
@@ -301,7 +323,6 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
     );
   }
 
-  // [Keep all your other helper methods unchanged...]
   Widget _buildStatItem(String value, String label, IconData icon) {
     return Column(
       children: [
@@ -333,7 +354,11 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
     );
   }
 
-  Widget _buildSectionPreview({required String title, required VoidCallback onViewAll, required Widget child}) {
+  Widget _buildSectionPreview({
+    required String title,
+    required VoidCallback onViewAll,
+    required Widget child,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -354,7 +379,9 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
                 child: Text(
                   'View All',
                   style: GoogleFonts.poppins(
-                    color: widget.subject['color'] ?? Theme.of(context).primaryColor,
+                    color:
+                        widget.subject['color'] ??
+                        Theme.of(context).primaryColor,
                   ),
                 ),
               ),
@@ -366,10 +393,7 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Padding(
-            padding: EdgeInsets.all(8),
-            child: child,
-          ),
+          child: Padding(padding: EdgeInsets.all(8), child: child),
         ),
         SizedBox(height: 16),
       ],
@@ -421,7 +445,8 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
   }
 
   Widget _buildAssignmentsPreview() {
-    final subjectColor = widget.subject['color'] ?? Theme.of(context).primaryColor;
+    final subjectColor =
+        widget.subject['color'] ?? Theme.of(context).primaryColor;
 
     return Column(
       children: [
@@ -531,7 +556,8 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
   }
 
   Widget _buildAttendancePreview() {
-    final subjectColor = widget.subject['color'] ?? Theme.of(context).primaryColor;
+    final subjectColor =
+        widget.subject['color'] ?? Theme.of(context).primaryColor;
 
     return Padding(
       padding: EdgeInsets.all(12),
@@ -564,11 +590,21 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildMiniAttendanceStat('Mon', '100%', Icons.check, Colors.green),
+              _buildMiniAttendanceStat(
+                'Mon',
+                '100%',
+                Icons.check,
+                Colors.green,
+              ),
               _buildMiniAttendanceStat('Tue', '95%', Icons.check, Colors.green),
               _buildMiniAttendanceStat('Wed', '89%', Icons.check, Colors.green),
               _buildMiniAttendanceStat('Thu', '92%', Icons.check, Colors.green),
-              _buildMiniAttendanceStat('Fri', '85%', Icons.warning, Colors.orange),
+              _buildMiniAttendanceStat(
+                'Fri',
+                '85%',
+                Icons.warning,
+                Colors.orange,
+              ),
             ],
           ),
         ],
@@ -576,20 +612,108 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
     );
   }
 
-  Widget _buildMiniAttendanceStat(String day, String percent, IconData icon, Color color) {
+  Widget _buildMiniAttendanceStat(
+    String day,
+    String percent,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
-        Text(
-          day,
-          style: GoogleFonts.poppins(fontSize: 12),
-        ),
+        Text(day, style: GoogleFonts.poppins(fontSize: 12)),
         SizedBox(height: 4),
         Icon(icon, color: color, size: 16),
-        Text(
-          percent,
-          style: GoogleFonts.poppins(fontSize: 12),
-        ),
+        Text(percent, style: GoogleFonts.poppins(fontSize: 12)),
       ],
+    );
+  }
+
+  Widget _buildAnnouncementsScreen() {
+    final subjectColor =
+        widget.subject['color'] ?? Theme.of(context).primaryColor;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('All Announcements'),
+        backgroundColor: subjectColor,
+      ),
+      body: ListView(
+        padding: EdgeInsets.all(16),
+        children: [
+          _buildAnnouncementCard(
+            title: 'Exam Schedule Posted',
+            content: 'Final exams will begin next week on Monday',
+            time: '2h ago',
+            icon: Icons.announcement,
+            color: Colors.blue,
+          ),
+          SizedBox(height: 12),
+          _buildAnnouncementCard(
+            title: 'Assignment 3 Graded',
+            content: 'Grades for the last assignment are now available',
+            time: '1d ago',
+            icon: Icons.assignment,
+            color: Colors.green,
+          ),
+          SizedBox(height: 12),
+          _buildAnnouncementCard(
+            title: 'Course Materials Updated',
+            content: 'New reading materials have been uploaded for Chapter 4',
+            time: '3d ago',
+            icon: Icons.library_books,
+            color: Colors.orange,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnnouncementCard({
+    required String title,
+    required String content,
+    required String time,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: color),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                Text(
+                  time,
+                  style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12),
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            Text(content, style: GoogleFonts.poppins()),
+          ],
+        ),
+      ),
     );
   }
 }

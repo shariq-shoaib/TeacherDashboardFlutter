@@ -17,17 +17,21 @@ class FullScheduleScreen extends StatefulWidget {
 class _FullScheduleScreenState extends State<FullScheduleScreen> {
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
-  DateTime _selectedDay = DateTime.now(); // Changed from nullable to non-nullable
-  final String _apiUrl = 'https://your-api-endpoint.com/schedule';  // Sample data - replace with API call
+  DateTime _selectedDay =
+      DateTime.now(); // Changed from nullable to non-nullable
+  final String _apiUrl =
+      'https://your-api-endpoint.com/schedule'; // Sample data - replace with API call
   List<ScheduleEvent> _events = [
     ScheduleEvent(
       id: '1',
       title: 'Linear Algebra Lecture',
       description: 'Chapter 3: Vector Spaces',
-      startTime: DateTime.now().subtract(Duration(days: 1)).copyWith(
-          hour: 9, minute: 0),
-      endTime: DateTime.now().subtract(Duration(days: 1)).copyWith(
-          hour: 10, minute: 30),
+      startTime: DateTime.now()
+          .subtract(Duration(days: 1))
+          .copyWith(hour: 9, minute: 0),
+      endTime: DateTime.now()
+          .subtract(Duration(days: 1))
+          .copyWith(hour: 10, minute: 30),
       location: 'Building A, Room 203',
       type: 'lecture',
       subjectColor: Colors.blue,
@@ -56,10 +60,12 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
       id: '4',
       title: 'Computer Science Lecture',
       description: 'Algorithms: Sorting Techniques',
-      startTime: DateTime.now().add(Duration(days: 1)).copyWith(
-          hour: 10, minute: 0),
-      endTime: DateTime.now().add(Duration(days: 1)).copyWith(
-          hour: 11, minute: 30),
+      startTime: DateTime.now()
+          .add(Duration(days: 1))
+          .copyWith(hour: 10, minute: 0),
+      endTime: DateTime.now()
+          .add(Duration(days: 1))
+          .copyWith(hour: 11, minute: 30),
       location: 'CS Building, Room 301',
       type: 'lecture',
       subjectColor: Colors.purple,
@@ -68,10 +74,12 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
       id: '5',
       title: 'Mathematics Workshop',
       description: 'Advanced Problem Solving',
-      startTime: DateTime.now().add(Duration(days: 2)).copyWith(
-          hour: 13, minute: 0),
-      endTime: DateTime.now().add(Duration(days: 2)).copyWith(
-          hour: 15, minute: 0),
+      startTime: DateTime.now()
+          .add(Duration(days: 2))
+          .copyWith(hour: 13, minute: 0),
+      endTime: DateTime.now()
+          .add(Duration(days: 2))
+          .copyWith(hour: 15, minute: 0),
       location: 'Main Auditorium',
       type: 'workshop',
       subjectColor: Colors.orange,
@@ -89,9 +97,9 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
   Future<void> _fetchSchedule() async {
     try {
       final response = await http.get(
-        Uri.parse('$_apiUrl?start=${_focusedDay.subtract(Duration(days: 7))
-            .toIso8601String()}&end=${_focusedDay.add(Duration(days: 14))
-            .toIso8601String()}'),
+        Uri.parse(
+          '$_apiUrl?start=${_focusedDay.subtract(Duration(days: 7)).toIso8601String()}&end=${_focusedDay.add(Duration(days: 14)).toIso8601String()}',
+        ),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -99,15 +107,16 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
         final data = json.decode(response.body);
         setState(() {
           _events = List<ScheduleEvent>.from(
-              data['events'].map((e) => ScheduleEvent.fromJson(e)));
+            data['events'].map((e) => ScheduleEvent.fromJson(e)),
+          );
         });
       } else {
         throw Exception('Failed to load schedule');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading schedule: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading schedule: $e')));
     }
   }
 
@@ -158,10 +167,7 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
                   });
                 },
               ),
-              IconButton(
-                icon: Icon(Icons.refresh),
-                onPressed: _fetchSchedule,
-              ),
+              IconButton(icon: Icon(Icons.refresh), onPressed: _fetchSchedule),
             ],
           ),
           SliverToBoxAdapter(
@@ -248,7 +254,7 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
   }
 
   Widget _buildEventsList() {
-    final events = _getEventsForDay(_selectedDay!);
+    final events = _getEventsForDay(_selectedDay);
     final theme = Theme.of(context);
 
     if (events.isEmpty) {
@@ -257,8 +263,11 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.event_available, size: 60,
-                  color: theme.colorScheme.onSurface.withOpacity(0.3)),
+              Icon(
+                Icons.event_available,
+                size: 60,
+                color: theme.colorScheme.onSurface.withOpacity(0.3),
+              ),
               SizedBox(height: 16),
               Text(
                 'No events scheduled',
@@ -274,13 +283,10 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
     }
 
     return SliverList(
-      delegate: SliverChildBuilderDelegate(
-            (context, index) {
-          final event = events[index];
-          return _buildEventCard(event);
-        },
-        childCount: events.length,
-      ),
+      delegate: SliverChildBuilderDelegate((context, index) {
+        final event = events[index];
+        return _buildEventCard(event);
+      }, childCount: events.length),
     );
   }
 
@@ -294,10 +300,7 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
       margin: EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: event.subjectColor.withOpacity(0.2),
-          width: 1,
-        ),
+        side: BorderSide(color: event.subjectColor.withOpacity(0.2), width: 1),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -347,13 +350,14 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
               SizedBox(height: 16),
               Row(
                 children: [
-                  Icon(Icons.access_time, size: 16,
-                      color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                  Icon(
+                    Icons.access_time,
+                    size: 16,
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
                   SizedBox(width: 8),
                   Text(
-                    '${timeFormat.format(event.startTime)} - ${timeFormat
-                        .format(event.endTime)} (${duration.inHours}h ${duration
-                        .inMinutes.remainder(60)}m)',
+                    '${timeFormat.format(event.startTime)} - ${timeFormat.format(event.endTime)} (${duration.inHours}h ${duration.inMinutes.remainder(60)}m)',
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: theme.colorScheme.onSurface.withOpacity(0.8),
@@ -364,8 +368,11 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
               SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.location_on, size: 16,
-                      color: theme.colorScheme.onSurface.withOpacity(0.6)),
+                  Icon(
+                    Icons.location_on,
+                    size: 16,
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  ),
                   SizedBox(width: 8),
                   Text(
                     event.location,
@@ -399,16 +406,14 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
     return Chip(
       label: Text(
         label,
-        style: GoogleFonts.poppins(
-          fontSize: 12,
-          color: Colors.white,
-        ),
+        style: GoogleFonts.poppins(fontSize: 12, color: Colors.white),
       ),
       backgroundColor: color,
       visualDensity: VisualDensity.compact,
     );
   }
 }
+
 class ScheduleEvent {
   final String id;
   final String title;
@@ -439,7 +444,9 @@ class ScheduleEvent {
       endTime: DateTime.parse(json['end_time']),
       location: json['location'],
       type: json['type'],
-      subjectColor: Color(int.parse(json['color'].substring(1, 7), radix: 16) + 0xFF000000),
+      subjectColor: Color(
+        int.parse(json['color'].substring(1, 7), radix: 16) + 0xFF000000,
+      ),
     );
   }
 

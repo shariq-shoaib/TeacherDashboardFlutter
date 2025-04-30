@@ -7,10 +7,12 @@ import 'dart:convert';
 class SubjectAssignmentsScreen extends StatefulWidget {
   final Map<String, dynamic> subject;
 
-  const SubjectAssignmentsScreen({Key? key, required this.subject}) : super(key: key);
+  const SubjectAssignmentsScreen({Key? key, required this.subject})
+    : super(key: key);
 
   @override
-  _SubjectAssignmentsScreenState createState() => _SubjectAssignmentsScreenState();
+  _SubjectAssignmentsScreenState createState() =>
+      _SubjectAssignmentsScreenState();
 }
 
 class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
@@ -44,9 +46,9 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
       setState(() {
         isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading assignments: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading assignments: $e')));
     }
   }
 
@@ -63,9 +65,9 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
         throw Exception('Failed to load submissions');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading submissions: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading submissions: $e')));
       rethrow;
     }
   }
@@ -115,11 +117,13 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AssignmentSubmissionsScreen(
-          assignment: assignment,
-          subjectColor: widget.subject['color'] ?? Theme.of(context).primaryColor,
-          fetchSubmissions: _fetchSubmissions,
-        ),
+        builder:
+            (context) => AssignmentSubmissionsScreen(
+              assignment: assignment,
+              subjectColor:
+                  widget.subject['color'] ?? Theme.of(context).primaryColor,
+              fetchSubmissions: _fetchSubmissions,
+            ),
       ),
     );
   }
@@ -142,30 +146,32 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
         ),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : assignments.isEmpty
-          ? Center(
-        child: Text(
-          'No assignments yet',
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            color: theme.colorScheme.onBackground.withOpacity(0.6),
-          ),
-        ),
-      )
-          : RefreshIndicator(
-        onRefresh: _fetchAssignments,
-        child: ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: assignments.length,
-          itemBuilder: (context, index) => _buildAssignmentCard(
-            assignments[index],
-            theme,
-            subjectColor,
-          ),
-        ),
-      ),
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : assignments.isEmpty
+              ? Center(
+                child: Text(
+                  'No assignments yet',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: theme.colorScheme.onBackground.withOpacity(0.6),
+                  ),
+                ),
+              )
+              : RefreshIndicator(
+                onRefresh: _fetchAssignments,
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: assignments.length,
+                  itemBuilder:
+                      (context, index) => _buildAssignmentCard(
+                        assignments[index],
+                        theme,
+                        subjectColor,
+                      ),
+                ),
+              ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: subjectColor,
         child: const Icon(Icons.add),
@@ -177,7 +183,10 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
   }
 
   Widget _buildAssignmentCard(
-      Map<String, dynamic> assignment, ThemeData theme, Color subjectColor) {
+    Map<String, dynamic> assignment,
+    ThemeData theme,
+    Color subjectColor,
+  ) {
     final dueDate = DateTime.parse(assignment['due_date']);
     final formattedDate = DateFormat('MMM d, y').format(dueDate);
     final timeLeft = dueDate.difference(DateTime.now());
@@ -186,9 +195,7 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
 
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -198,29 +205,19 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      assignment['title'],
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
+              // Status chip only (removed the title)
+              Align(
+                alignment: Alignment.centerRight,
+                child: Chip(
+                  label: Text(
+                    isActive ? 'ACTIVE' : 'UPCOMING',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Colors.white,
                     ),
                   ),
-                  Chip(
-                    label: Text(
-                      isActive ? 'ACTIVE' : 'UPCOMING',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: Colors.white,
-                      ),
-                    ),
-                    backgroundColor: isActive ? Colors.green : Colors.orange,
-                  ),
-                ],
+                  backgroundColor: isActive ? Colors.green : Colors.orange,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -262,9 +259,7 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
                 children: [
                   Text(
                     'Submissions: ${assignment['submitted']}/${assignment['total']}',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 4),
                   LinearProgressIndicator(
@@ -285,13 +280,15 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
                       size: 16,
                       color: theme.colorScheme.onBackground.withOpacity(0.6),
                     ),
-                    ...assignment['attachments'].map<Widget>((file) => Chip(
-                      label: Text(
-                        file,
-                        style: GoogleFonts.poppins(fontSize: 12),
+                    ...assignment['attachments'].map<Widget>(
+                      (file) => Chip(
+                        label: Text(
+                          file,
+                          style: GoogleFonts.poppins(fontSize: 12),
+                        ),
+                        backgroundColor: theme.colorScheme.surface,
                       ),
-                      backgroundColor: theme.colorScheme.surface,
-                    )),
+                    ),
                   ],
                 ),
               ],
@@ -373,28 +370,29 @@ class AssignmentSubmissionsScreen extends StatelessWidget {
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: submissions.length,
-        itemBuilder: (context, index) => _buildSubmissionCard(
-          submissions[index],
-          theme,
-          subjectColor,
-        ),
+        itemBuilder:
+            (context, index) =>
+                _buildSubmissionCard(submissions[index], theme, subjectColor),
       ),
     );
   }
 
   Widget _buildSubmissionCard(
-      Map<String, dynamic> submission, ThemeData theme, Color subjectColor) {
+    Map<String, dynamic> submission,
+    ThemeData theme,
+    Color subjectColor,
+  ) {
     final isSubmitted = submission['status'] == 'submitted';
-    final submittedAt = submission['submitted_at'] != null
-        ? DateFormat('MMM d, h:mm a')
-        .format(DateTime.parse(submission['submitted_at']))
-        : 'Not submitted';
+    final submittedAt =
+        submission['submitted_at'] != null
+            ? DateFormat(
+              'MMM d, h:mm a',
+            ).format(DateTime.parse(submission['submitted_at']))
+            : 'Not submitted';
 
     return Card(
       elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -465,11 +463,7 @@ class AssignmentSubmissionsScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(
-                    Icons.grade,
-                    size: 14,
-                    color: Colors.amber,
-                  ),
+                  Icon(Icons.grade, size: 14, color: Colors.amber),
                   const SizedBox(width: 4),
                   Text(
                     'Grade: ${submission['grade']}',
