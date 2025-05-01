@@ -6,6 +6,7 @@ import 'SubjectResults.dart';
 import 'SubjectAttendance.dart';
 import 'SubjectChat.dart';
 import 'SubjectAnnouncementsScreen.dart';
+import 'dart:ui';
 
 class SubjectDashboardScreen extends StatefulWidget {
   final Map<String, dynamic> subject;
@@ -20,6 +21,7 @@ class SubjectDashboardScreen extends StatefulWidget {
 class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
   int _currentIndex = 0;
   late List<Widget> _screens;
+  bool _isMenuOpen = false;
 
   @override
   void initState() {
@@ -37,7 +39,7 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
       SubjectQueriesScreen(subject: widget.subject),
       SubjectResultsScreen(subject: widget.subject),
       SubjectAttendanceScreen(subject: widget.subject),
-      SubjectChatScreen(subject: widget.subject), // Added chat screen
+      SubjectChatScreen(subject: widget.subject),
     ];
   }
 
@@ -51,41 +53,34 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
           _buildSectionPreview(
             title: 'Recent Announcements',
             onViewAll:
-                () => _navigateToScreen(
-                  SubjectAnnouncementsScreen(subject: widget.subject),
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) =>
+                            SubjectAnnouncementsScreen(subject: widget.subject),
+                  ),
                 ),
             child: _buildAnnouncementsPreview(),
           ),
           _buildSectionPreview(
             title: 'Upcoming Assignments',
-            onViewAll:
-                () => _navigateToScreen(
-                  SubjectAssignmentsScreen(subject: widget.subject),
-                ),
+            onViewAll: () => _navigateToScreen(1),
             child: _buildAssignmentsPreview(),
           ),
           _buildSectionPreview(
             title: 'Pending Queries',
-            onViewAll:
-                () => _navigateToScreen(
-                  SubjectQueriesScreen(subject: widget.subject),
-                ),
+            onViewAll: () => _navigateToScreen(2),
             child: _buildQueriesPreview(),
           ),
           _buildSectionPreview(
             title: 'Attendance Summary',
-            onViewAll:
-                () => _navigateToScreen(
-                  SubjectAttendanceScreen(subject: widget.subject),
-                ),
+            onViewAll: () => _navigateToScreen(4),
             child: _buildAttendancePreview(),
           ),
           _buildSectionPreview(
             title: 'Recent Messages',
-            onViewAll:
-                () => _navigateToScreen(
-                  SubjectChatScreen(subject: widget.subject),
-                ),
+            onViewAll: () => _navigateToScreen(5),
             child: _buildChatPreview(),
           ),
         ],
@@ -93,56 +88,171 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
     );
   }
 
-  Widget _buildChatPreview() {
-    return Column(
-      children: [
-        ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.blue[50],
-            child: Icon(Icons.person, color: Colors.blue),
-          ),
-          title: Text(
-            'Prof. Smith',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-          ),
-          subtitle: Text(
-            'Don\'t forget about the assignment due tomorrow',
-            style: GoogleFonts.poppins(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: Text(
-            '10m ago',
-            style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12),
-          ),
+  void _navigateToScreen(int index) {
+    setState(() {
+      _currentIndex = index;
+      _isMenuOpen = false;
+    });
+  }
+
+  Widget _buildInfographicMenu() {
+    final List<Map<String, dynamic>> menuItems = [
+      {
+        'title': 'Overview',
+        'icon': Icons.lightbulb,
+        'index': 0,
+        'color': Colors.red,
+      },
+      {
+        'title': 'Assignments',
+        'icon': Icons.assignment,
+        'index': 1,
+        'color': Colors.orange,
+      },
+      {
+        'title': 'Queries',
+        'icon': Icons.question_answer,
+        'index': 2,
+        'color': Colors.blue,
+      },
+      {
+        'title': 'Results',
+        'icon': Icons.assessment,
+        'index': 3,
+        'color': Colors.green,
+      },
+      {
+        'title': 'Attendance',
+        'icon': Icons.calendar_today,
+        'index': 4,
+        'color': Colors.purple,
+      },
+      {
+        'title': 'Chat',
+        'icon': Icons.chat_bubble,
+        'index': 5,
+        'color': Colors.teal,
+      },
+    ];
+
+    return Positioned(
+      top: 120,
+      right: 20,
+      child: AnimatedOpacity(
+        opacity: _isMenuOpen ? 1.0 : 0.0,
+        duration: Duration(milliseconds: 300),
+        child: Column(
+          children:
+              menuItems.map((item) {
+                return GestureDetector(
+                  onTap: () {
+                    _navigateToScreen(item['index']);
+                  },
+                  child: Container(
+                    margin: EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: item['color'],
+                          radius: 26,
+                          child: Icon(
+                            item['icon'],
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          item['title'],
+                          style: GoogleFonts.poppins(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
         ),
-        Divider(height: 1),
-        ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.green[50],
-            child: Icon(Icons.person, color: Colors.green),
-          ),
-          title: Text(
-            'You',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-          ),
-          subtitle: Text(
-            'I submitted the assignment last night',
-            style: GoogleFonts.poppins(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: Text(
-            '5m ago',
-            style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
-  void _navigateToScreen(Widget screen) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
+  Widget _buildMenuButton(String title, IconData icon, int index, Color color) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 4),
+      child: ListTile(
+        leading: Container(
+          padding: EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color:
+                _currentIndex == index
+                    ? color.withOpacity(0.2)
+                    : Colors.transparent,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            color:
+                _currentIndex == index
+                    ? color
+                    : (isDarkMode ? Colors.grey[400] : Colors.grey[600]),
+            size: 22,
+          ),
+        ),
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color:
+                _currentIndex == index
+                    ? color
+                    : (isDarkMode ? Colors.white : Colors.black87),
+            fontWeight:
+                _currentIndex == index ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+        onTap: () => _navigateToScreen(index),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12),
+        minLeadingWidth: 24,
+        tileColor:
+            _currentIndex == index
+                ? color.withOpacity(0.1)
+                : Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  Widget _buildMainFAB() {
+    final subjectColor =
+        widget.subject['color'] ?? Theme.of(context).primaryColor;
+
+    return FloatingActionButton(
+      shape: const CircleBorder(), // ensure perfectly rounded FAB
+      backgroundColor: subjectColor,
+      elevation: 8,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (child, animation) {
+          return ScaleTransition(scale: animation, child: child);
+        },
+        child: Icon(
+          _isMenuOpen ? Icons.close : Icons.apps_rounded,
+          key: ValueKey(_isMenuOpen ? 'close' : 'menu'),
+          size: 28,
+        ),
+      ),
+      onPressed: () {
+        setState(() {
+          _isMenuOpen = !_isMenuOpen;
+        });
+      },
+    );
   }
 
   @override
@@ -151,85 +261,44 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
         widget.subject['color'] ?? Theme.of(context).primaryColor;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.subject['name'],
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: subjectColor,
-        centerTitle: true,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        ),
-        actions:
-            _currentIndex == 5
-                ? [
-                  IconButton(
-                    icon: Icon(Icons.info_outline),
-                    onPressed: () {
-                      // Show chat info
-                    },
+      appBar:
+          _currentIndex == 0
+              ? AppBar(
+                title: Text(
+                  widget.subject['name'],
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                    color: Colors.white,
                   ),
-                  IconButton(
-                    icon: Icon(Icons.people_outline),
-                    onPressed: () {
-                      // Show participants
-                    },
+                ),
+                backgroundColor: subjectColor,
+                centerTitle: true,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(20),
                   ),
-                ]
-                : null,
-      ),
-      body:
+                ),
+              )
+              : null,
+      body: Stack(
+        children: [
           _screens.isNotEmpty
               ? _screens[_currentIndex]
-              : Center(child: CircularProgressIndicator()),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        selectedItemColor: subjectColor,
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
-            label: 'Overview',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assignment_outlined),
-            activeIcon: Icon(Icons.assignment),
-            label: 'Assignments',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.question_answer_outlined),
-            activeIcon: Icon(Icons.question_answer),
-            label: 'Queries',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assessment_outlined),
-            activeIcon: Icon(Icons.assessment),
-            label: 'Results',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today_outlined),
-            activeIcon: Icon(Icons.calendar_today),
-            label: 'Attendance',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            activeIcon: Icon(Icons.chat_bubble),
-            label: 'Chat',
-          ),
+              : const Center(child: CircularProgressIndicator()),
+
+          // Blur effect when menu is open
+          if (_isMenuOpen)
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
+              child: Container(color: Colors.black.withOpacity(0.1)),
+            ),
+
+          _buildInfographicMenu(),
         ],
-        onTap: (index) => setState(() => _currentIndex = index),
       ),
-      floatingActionButton:
-          _currentIndex == 0 ? null : _buildFloatingActionButton(),
+      floatingActionButton: _buildMainFAB(),
     );
   }
 
@@ -396,6 +465,54 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
           child: Padding(padding: EdgeInsets.all(8), child: child),
         ),
         SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildChatPreview() {
+    return Column(
+      children: [
+        ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Colors.blue[50],
+            child: Icon(Icons.person, color: Colors.blue),
+          ),
+          title: Text(
+            'Prof. Smith',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+          ),
+          subtitle: Text(
+            'Don\'t forget about the assignment due tomorrow',
+            style: GoogleFonts.poppins(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: Text(
+            '10m ago',
+            style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12),
+          ),
+        ),
+        Divider(height: 1),
+        ListTile(
+          leading: CircleAvatar(
+            backgroundColor: Colors.green[50],
+            child: Icon(Icons.person, color: Colors.green),
+          ),
+          title: Text(
+            'You',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+          ),
+          subtitle: Text(
+            'I submitted the assignment last night',
+            style: GoogleFonts.poppins(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: Text(
+            '5m ago',
+            style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12),
+          ),
+        ),
       ],
     );
   }
