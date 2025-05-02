@@ -1,14 +1,13 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
 
 class FullScheduleScreen extends StatefulWidget {
-  final Map<String, dynamic> subject;
+  final List<Map<String, dynamic>> schedule;
 
-  const FullScheduleScreen({Key? key, required this.subject}) : super(key: key);
+  const FullScheduleScreen({Key? key, required this.schedule})
+    : super(key: key);
 
   @override
   _FullScheduleScreenState createState() => _FullScheduleScreenState();
@@ -17,449 +16,566 @@ class FullScheduleScreen extends StatefulWidget {
 class _FullScheduleScreenState extends State<FullScheduleScreen> {
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
-  DateTime _selectedDay =
-      DateTime.now(); // Changed from nullable to non-nullable
-  final String _apiUrl =
-      'https://your-api-endpoint.com/schedule'; // Sample data - replace with API call
-  List<ScheduleEvent> _events = [
-    ScheduleEvent(
-      id: '1',
-      title: 'Linear Algebra Lecture',
-      description: 'Chapter 3: Vector Spaces',
-      startTime: DateTime.now()
-          .subtract(Duration(days: 1))
-          .copyWith(hour: 9, minute: 0),
-      endTime: DateTime.now()
-          .subtract(Duration(days: 1))
-          .copyWith(hour: 10, minute: 30),
-      location: 'Building A, Room 203',
-      type: 'lecture',
-      subjectColor: Colors.blue,
-    ),
-    ScheduleEvent(
-      id: '2',
-      title: 'Calculus Tutorial',
-      description: 'Problem solving session',
-      startTime: DateTime.now().copyWith(hour: 11, minute: 0),
-      endTime: DateTime.now().copyWith(hour: 12, minute: 30),
-      location: 'Building B, Room 105',
-      type: 'tutorial',
-      subjectColor: Colors.green,
-    ),
-    ScheduleEvent(
-      id: '3',
-      title: 'Physics Lab',
-      description: 'Experiment 5: Thermodynamics',
-      startTime: DateTime.now().copyWith(hour: 14, minute: 0),
-      endTime: DateTime.now().copyWith(hour: 16, minute: 0),
-      location: 'Science Lab 3',
-      type: 'lab',
-      subjectColor: Colors.red,
-    ),
-    ScheduleEvent(
-      id: '4',
-      title: 'Computer Science Lecture',
-      description: 'Algorithms: Sorting Techniques',
-      startTime: DateTime.now()
-          .add(Duration(days: 1))
-          .copyWith(hour: 10, minute: 0),
-      endTime: DateTime.now()
-          .add(Duration(days: 1))
-          .copyWith(hour: 11, minute: 30),
-      location: 'CS Building, Room 301',
-      type: 'lecture',
-      subjectColor: Colors.purple,
-    ),
-    ScheduleEvent(
-      id: '5',
-      title: 'Mathematics Workshop',
-      description: 'Advanced Problem Solving',
-      startTime: DateTime.now()
-          .add(Duration(days: 2))
-          .copyWith(hour: 13, minute: 0),
-      endTime: DateTime.now()
-          .add(Duration(days: 2))
-          .copyWith(hour: 15, minute: 0),
-      location: 'Main Auditorium',
-      type: 'workshop',
-      subjectColor: Colors.orange,
-    ),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedDay = _focusedDay;
-    // Uncomment when API is ready
-    // _fetchSchedule();
-  }
-
-  Future<void> _fetchSchedule() async {
-    try {
-      final response = await http.get(
-        Uri.parse(
-          '$_apiUrl?start=${_focusedDay.subtract(Duration(days: 7)).toIso8601String()}&end=${_focusedDay.add(Duration(days: 14)).toIso8601String()}',
-        ),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _events = List<ScheduleEvent>.from(
-            data['events'].map((e) => ScheduleEvent.fromJson(e)),
-          );
-        });
-      } else {
-        throw Exception('Failed to load schedule');
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error loading schedule: $e')));
-    }
-  }
-
-  List<ScheduleEvent> _getEventsForDay(DateTime day) {
-    return _events.where((event) => isSameDay(event.startTime, day)).toList();
-  }
+  DateTime _selectedDay = DateTime.now();
+  final Color _primaryColor = const Color(0xFF4361EE);
+  final Color _backgroundColor = const Color(0xFFF8F9FF);
+  int _currentIndex = 1; // Default to weekly view
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final subjectColor = widget.subject['color'] ?? theme.primaryColor;
-
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 120,
-            floating: false,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                'Weekly Schedule',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      subjectColor.withOpacity(0.8),
-                      subjectColor.withOpacity(0.6),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: Icon(Icons.today),
-                onPressed: () {
-                  setState(() {
-                    _focusedDay = DateTime.now();
-                    _selectedDay = DateTime.now();
-                  });
-                },
-              ),
-              IconButton(icon: Icon(Icons.refresh), onPressed: _fetchSchedule),
-            ],
+      backgroundColor: _backgroundColor,
+      appBar: AppBar(
+        title: Text(
+          _currentIndex == 0
+              ? 'Calendar View'
+              : DateFormat('MMMM yyyy').format(_focusedDay),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
           ),
-          SliverToBoxAdapter(
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: TableCalendar<ScheduleEvent>(
-                firstDay: DateTime.now().subtract(Duration(days: 365)),
-                lastDay: DateTime.now().add(Duration(days: 365)),
-                focusedDay: _focusedDay,
-                calendarFormat: _calendarFormat,
-                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                onDaySelected: (selectedDay, focusedDay) {
-                  if (!isSameDay(_selectedDay, selectedDay)) {
-                    setState(() {
-                      _selectedDay = selectedDay;
-                      _focusedDay = focusedDay;
-                    });
-                  }
-                },
-                onPageChanged: (focusedDay) {
-                  _focusedDay = focusedDay;
-                },
-                eventLoader: _getEventsForDay,
-                calendarStyle: CalendarStyle(
-                  todayDecoration: BoxDecoration(
-                    color: subjectColor.withOpacity(0.3),
-                    shape: BoxShape.circle,
-                  ),
-                  selectedDecoration: BoxDecoration(
-                    color: subjectColor,
-                    shape: BoxShape.circle,
-                  ),
-                  markersAlignment: Alignment.bottomCenter,
-                  markerDecoration: BoxDecoration(
-                    color: subjectColor,
-                    shape: BoxShape.circle,
-                  ),
-                  outsideDaysVisible: false,
-                ),
-                headerStyle: HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                  titleTextStyle: GoogleFonts.poppins(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                daysOfWeekStyle: DaysOfWeekStyle(
-                  weekdayStyle: GoogleFonts.poppins(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
-                  ),
-                  weekendStyle: GoogleFonts.poppins(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.all(16),
-            sliver: _buildEventsList(),
-          ),
-        ],
+        ),
+        backgroundColor: _primaryColor,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
+      body: _buildCurrentView(),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: subjectColor,
-        child: Icon(Icons.add),
-        onPressed: () {
-          // Add new schedule event
+        backgroundColor: _primaryColor,
+        child: const Icon(Icons.add),
+        onPressed: _showAddClassDialog,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+            if (index == 1) {
+              // Weekly view
+              _focusedDay = DateTime.now();
+              _selectedDay = DateTime.now();
+            }
+          });
         },
+        backgroundColor: _primaryColor,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white.withOpacity(0.6),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today),
+            label: 'Calendar',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.view_week), label: 'Week'),
+          BottomNavigationBarItem(icon: Icon(Icons.today), label: 'Day'),
+        ],
       ),
     );
   }
 
-  Widget _buildEventsList() {
-    final events = _getEventsForDay(_selectedDay);
-    final theme = Theme.of(context);
+  Widget _buildCurrentView() {
+    switch (_currentIndex) {
+      case 0:
+        return _buildCalendarView();
+      case 1:
+        return _buildWeeklyView();
+      case 2:
+        return _buildDailyView();
+      default:
+        return _buildWeeklyView();
+    }
+  }
 
-    if (events.isEmpty) {
-      return SliverToBoxAdapter(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildCalendarView() {
+    return Column(
+      children: [
+        // Clean Month Header
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(
-                Icons.event_available,
-                size: 60,
-                color: theme.colorScheme.onSurface.withOpacity(0.3),
-              ),
-              SizedBox(height: 16),
               Text(
-                'No events scheduled',
+                DateFormat('MMMM yyyy').format(_focusedDay),
                 style: GoogleFonts.poppins(
                   fontSize: 18,
-                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.chevron_left, color: _primaryColor),
+                    onPressed:
+                        () => setState(() {
+                          _focusedDay = DateTime(
+                            _focusedDay.year,
+                            _focusedDay.month - 1,
+                          );
+                        }),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.chevron_right, color: _primaryColor),
+                    onPressed:
+                        () => setState(() {
+                          _focusedDay = DateTime(
+                            _focusedDay.year,
+                            _focusedDay.month + 1,
+                          );
+                        }),
+                  ),
+                ],
               ),
             ],
           ),
+        ),
+
+        // Weekday Headers
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+          ),
+          child: Row(
+            children:
+                ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) {
+                  return Expanded(
+                    child: Center(
+                      child: Text(
+                        day,
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w500,
+                          color: day == 'S' ? Colors.red : Colors.black87,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+          ),
+        ),
+
+        // Calendar Grid
+        Expanded(
+          child: TableCalendar(
+            firstDay: DateTime.now().subtract(const Duration(days: 365)),
+            lastDay: DateTime.now().add(const Duration(days: 365)),
+            focusedDay: _focusedDay,
+            calendarFormat: CalendarFormat.month,
+            headerVisible: false,
+            daysOfWeekVisible: false,
+            calendarStyle: CalendarStyle(
+              outsideDaysVisible: false,
+              weekendTextStyle: TextStyle(color: Colors.red[400]),
+              todayDecoration: BoxDecoration(
+                color: _primaryColor.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              selectedDecoration: BoxDecoration(
+                color: _primaryColor,
+                shape: BoxShape.circle,
+              ),
+              defaultTextStyle: GoogleFonts.poppins(),
+            ),
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+            },
+          ),
+        ),
+
+        // Selected Day Section
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border(top: BorderSide(color: Colors.grey[200]!)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                DateFormat('EEEE, MMMM d').format(_selectedDay),
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: _primaryColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildDayScheduleSection(_selectedDay),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDayScheduleSection(DateTime day) {
+    final daySchedule =
+        widget.schedule.where((item) => isSameDay(item['date'], day)).toList();
+
+    if (daySchedule.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'No classes scheduled',
+          style: GoogleFonts.poppins(color: Colors.grey[600]),
         ),
       );
     }
 
-    return SliverList(
-      delegate: SliverChildBuilderDelegate((context, index) {
-        final event = events[index];
-        return _buildEventCard(event);
-      }, childCount: events.length),
+    return Column(
+      children: daySchedule.map((item) => _buildScheduleItem(item)).toList(),
     );
   }
 
-  Widget _buildEventCard(ScheduleEvent event) {
-    final theme = Theme.of(context);
-    final timeFormat = DateFormat('h:mm a');
-    final duration = event.endTime.difference(event.startTime);
+  Widget _buildWeeklyView() {
+    final weekStart = _focusedDay.subtract(Duration(days: _focusedDay.weekday));
+    final weekDays = List.generate(7, (i) => weekStart.add(Duration(days: i)));
 
-    return Card(
-      elevation: 2,
-      margin: EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: event.subjectColor.withOpacity(0.2), width: 1),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          // Show event details
-        },
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: event.subjectColor,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          event.title,
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          event.description,
-                          style: GoogleFonts.poppins(
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  _buildEventTypeChip(event.type),
-                ],
-              ),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  Icon(
-                    Icons.access_time,
-                    size: 16,
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    '${timeFormat.format(event.startTime)} - ${timeFormat.format(event.endTime)} (${duration.inHours}h ${duration.inMinutes.remainder(60)}m)',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: theme.colorScheme.onSurface.withOpacity(0.8),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on,
-                    size: 16,
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    event.location,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: theme.colorScheme.onSurface.withOpacity(0.8),
-                    ),
-                  ),
-                ],
+    return Column(
+      children: [
+        // Weekday headers
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                spreadRadius: 2,
               ),
             ],
           ),
+          child: Row(
+            children:
+                weekDays.map((day) {
+                  return Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          _selectedDay = day;
+                          _currentIndex = 2; // Switch to daily view
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color:
+                                  isSameDay(day, _selectedDay)
+                                      ? _primaryColor
+                                      : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              DateFormat('E').format(day),
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    isSameDay(day, DateTime.now())
+                                        ? _primaryColor
+                                        : Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              day.day.toString(),
+                              style: GoogleFonts.poppins(
+                                color:
+                                    isSameDay(day, DateTime.now())
+                                        ? _primaryColor
+                                        : Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+          ),
+        ),
+        // Weekly schedule content
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              for (final day in weekDays) _buildDayScheduleSection(day),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDailyView() {
+    final daySchedule =
+        widget.schedule.where((item) {
+          return isSameDay(item['date'], _selectedDay);
+        }).toList();
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          DateFormat('EEEE, MMMM d').format(_selectedDay),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: _primaryColor,
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (daySchedule.isEmpty)
+          Center(
+            child: Column(
+              children: [
+                Icon(Icons.event_available, size: 60, color: Colors.grey[400]),
+                const SizedBox(height: 16),
+                Text(
+                  'No classes scheduled for this day',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          ...daySchedule.map((item) => _buildScheduleItem(item)),
+      ],
+    );
+  }
+
+  Widget _buildScheduleItem(Map<String, dynamic> item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              item['subject'],
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
+                const SizedBox(width: 8),
+                Text(
+                  item['time'],
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
+                const SizedBox(width: 8),
+                Text(
+                  item['room'],
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildEventTypeChip(String type) {
-    final theme = Theme.of(context);
-    final typeData = {
-      'lecture': {'label': 'Lecture', 'color': Colors.blue},
-      'tutorial': {'label': 'Tutorial', 'color': Colors.green},
-      'lab': {'label': 'Lab', 'color': Colors.red},
-      'workshop': {'label': 'Workshop', 'color': Colors.orange},
-      'exam': {'label': 'Exam', 'color': Colors.purple},
-    };
-
-    final label = (typeData[type]?['label'] as String?) ?? type;
-    final color = (typeData[type]?['color'] as Color?) ?? theme.primaryColor;
-
-    return Chip(
-      label: Text(
-        label,
-        style: GoogleFonts.poppins(fontSize: 12, color: Colors.white),
-      ),
-      backgroundColor: color,
-      visualDensity: VisualDensity.compact,
+  Future<void> _showAddClassDialog() async {
+    // Implement your add class dialog here
+    // This should collect: subject, time, room, date, etc.
+    // Then add to widget.schedule
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add Class'),
+          content: const Text('This is a placeholder for adding a class.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
 
-class ScheduleEvent {
-  final String id;
-  final String title;
-  final String description;
-  final DateTime startTime;
-  final DateTime endTime;
-  final String location;
-  final String type;
-  final Color subjectColor;
+class TodayScheduleScreen extends StatelessWidget {
+  final List<Map<String, dynamic>> schedule;
+  final bool isTodayOnly;
+  final DateTime? date;
 
-  ScheduleEvent({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.startTime,
-    required this.endTime,
-    required this.location,
-    required this.type,
-    required this.subjectColor,
-  });
+  const TodayScheduleScreen({
+    Key? key,
+    required this.schedule,
+    this.isTodayOnly = false,
+    this.date,
+  }) : super(key: key);
 
-  factory ScheduleEvent.fromJson(Map<String, dynamic> json) {
-    return ScheduleEvent(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
-      startTime: DateTime.parse(json['start_time']),
-      endTime: DateTime.parse(json['end_time']),
-      location: json['location'],
-      type: json['type'],
-      subjectColor: Color(
-        int.parse(json['color'].substring(1, 7), radix: 16) + 0xFF000000,
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = const Color(0xFF4361EE);
+    final backgroundColor = const Color(0xFFF8F9FF);
+
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        title: Text(
+          isTodayOnly ? "Today's Schedule" : _formatDate(date!),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: primaryColor,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
+      body: _buildScheduleList(),
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'description': description,
-      'start_time': startTime.toIso8601String(),
-      'end_time': endTime.toIso8601String(),
-      'location': location,
-      'type': type,
-      'color': '#${subjectColor.value.toRadixString(16).substring(2, 8)}',
-    };
+  Widget _buildScheduleList() {
+    if (schedule.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.event_available, size: 60, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              isTodayOnly
+                  ? 'No classes scheduled for today'
+                  : 'No classes scheduled for this day',
+              style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: schedule.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final item = schedule[index];
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item['subject'],
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 8),
+                    Text(
+                      item['time'],
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.class_, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${item['class']} - ${item['room']}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return DateFormat('EEEE, MMMM d').format(date);
   }
 }

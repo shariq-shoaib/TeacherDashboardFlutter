@@ -6,6 +6,8 @@ import 'dart:ui';
 import 'Subjects.dart';
 import 'FullSchedule.dart';
 import 'TeacherProfile.dart';
+import 'SubjectDetails.dart';
+import 'AnnouncementsScreen.dart';
 
 void main() {
   runApp(TeacherApp());
@@ -26,9 +28,7 @@ class TeacherApp extends StatelessWidget {
           surface: Colors.white,
           background: Color(0xFFF8F9FF), // Very light blue background
         ),
-        textTheme: GoogleFonts.poppinsTextTheme(
-          Theme.of(context).textTheme,
-        ),
+        textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: TeacherHomeScreen(),
@@ -81,9 +81,24 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   ];
 
   List<Map<String, dynamic>> subjects = [
-    {'name': 'Mathematics', 'code': 'MATH101', 'color': Color(0xFF4361EE), 'icon': Icons.calculate},
-    {'name': 'Physics', 'code': 'PHYS202', 'color': Color(0xFF7209B7), 'icon': Icons.science},
-    {'name': 'Computer Science', 'code': 'COMP110', 'color': Color(0xFF4CC9F0), 'icon': Icons.computer},
+    {
+      'name': 'Mathematics',
+      'code': 'MATH101',
+      'color': Color(0xFF4361EE),
+      'icon': Icons.calculate,
+    },
+    {
+      'name': 'Physics',
+      'code': 'PHYS202',
+      'color': Color(0xFF7209B7),
+      'icon': Icons.science,
+    },
+    {
+      'name': 'Computer Science',
+      'code': 'COMP110',
+      'color': Color(0xFF4CC9F0),
+      'icon': Icons.computer,
+    },
   ];
 
   // Teacher profile data
@@ -114,10 +129,14 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   // API Call Methods
   Future<void> _fetchAnnouncements() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl$announcementsEndpoint'));
+      final response = await http.get(
+        Uri.parse('$baseUrl$announcementsEndpoint'),
+      );
       if (response.statusCode == 200) {
         setState(() {
-          announcements = List<Map<String, dynamic>>.from(json.decode(response.body));
+          announcements = List<Map<String, dynamic>>.from(
+            json.decode(response.body),
+          );
         });
       }
     } catch (e) {
@@ -131,7 +150,9 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
       final response = await http.get(Uri.parse('$baseUrl$scheduleEndpoint'));
       if (response.statusCode == 200) {
         setState(() {
-          todaysSchedule = List<Map<String, dynamic>>.from(json.decode(response.body));
+          todaysSchedule = List<Map<String, dynamic>>.from(
+            json.decode(response.body),
+          );
         });
       }
     } catch (e) {
@@ -144,7 +165,9 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
       final response = await http.get(Uri.parse('$baseUrl$subjectsEndpoint'));
       if (response.statusCode == 200) {
         setState(() {
-          subjects = List<Map<String, dynamic>>.from(json.decode(response.body));
+          subjects = List<Map<String, dynamic>>.from(
+            json.decode(response.body),
+          );
         });
       }
     } catch (e) {
@@ -157,7 +180,9 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
       final response = await http.get(Uri.parse('$baseUrl$profileEndpoint'));
       if (response.statusCode == 200) {
         setState(() {
-          teacherProfile = Map<String, dynamic>.from(json.decode(response.body));
+          teacherProfile = Map<String, dynamic>.from(
+            json.decode(response.body),
+          );
         });
       }
     } catch (e) {
@@ -170,19 +195,19 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: Text('Teacher Dashboard',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.bold,
-              fontSize: 22,
-              color: Colors.white,
-            )),
+        title: Text(
+          'Teacher Dashboard',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            color: Colors.white,
+          ),
+        ),
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.primary,
         centerTitle: true,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
         ),
         actions: [
           IconButton(
@@ -205,13 +230,41 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
             SizedBox(height: 24),
 
             // Announcements Section
-            _buildSectionHeader(context, 'Announcements', 'View All'),
+            _buildSectionHeader(
+              context,
+              'Announcements',
+              'View All',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) =>
+                            AnnouncementScreen(announcements: announcements),
+                  ),
+                );
+              },
+            ),
             SizedBox(height: 12),
             _buildAnnouncementsPanel(context),
             SizedBox(height: 24),
 
             // Today's Schedule
-            _buildSectionHeader(context, "Today's Schedule", 'View All'),
+            _buildSectionHeader(
+              context,
+              "Today's Schedule",
+              'View All',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) =>
+                            FullScheduleScreen(schedule: todaysSchedule),
+                  ),
+                );
+              },
+            ),
             SizedBox(height: 12),
             _buildScheduleList(context),
             SizedBox(height: 24),
@@ -370,18 +423,19 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
           SizedBox(height: 4),
           Text(
             title,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
     );
   }
 
-
-  Widget _buildSectionHeader(BuildContext context, String title, String actionText) {
+  Widget _buildSectionHeader(
+    BuildContext context,
+    String title,
+    String actionText, {
+    VoidCallback? onPressed,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -395,7 +449,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
         ),
         if (actionText.isNotEmpty)
           TextButton(
-            onPressed: () {},
+            onPressed: onPressed,
             child: Text(
               actionText,
               style: GoogleFonts.poppins(
@@ -422,73 +476,81 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
         ],
       ),
       child: Column(
-        children: announcements.map((announcement) =>
-            Column(
-              children: [
-                ListTile(
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  leading: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: announcement['color'].withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      announcement['icon'],
-                      color: announcement['color'],
-                    ),
-                  ),
-                  title: Text(
-                    announcement['title'],
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  subtitle: Text(
-                    announcement['content'],
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.poppins(
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+        children:
+            announcements
+                .map(
+                  (announcement) => Column(
                     children: [
-                      Text(
-                        announcement['time'],
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Colors.grey,
+                      ListTile(
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        leading: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: announcement['color'].withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            announcement['icon'],
+                            color: announcement['color'],
+                          ),
+                        ),
+                        title: Text(
+                          announcement['title'],
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        subtitle: Text(
+                          announcement['content'],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(color: Colors.grey[600]),
+                        ),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              announcement['time'],
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            if (announcement['isNew'])
+                              Container(
+                                margin: EdgeInsets.only(top: 4),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  'NEW',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-                      if (announcement['isNew'])
-                        Container(
-                          margin: EdgeInsets.only(top: 4),
-                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            'NEW',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+                      if (announcement != announcements.last)
+                        Divider(height: 1, indent: 16),
                     ],
                   ),
-                ),
-                if (announcement != announcements.last)
-                  Divider(height: 1, indent: 16),
-              ],
-            )).toList(),
+                )
+                .toList(),
       ),
     );
   }
@@ -507,61 +569,63 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
         ],
       ),
       child: Column(
-        children: todaysSchedule.map((schedule) =>
-            Column(
-              children: [
-                ListTile(
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  leading: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: schedule['color'].withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.schedule,
-                      color: schedule['color'],
-                    ),
-                  ),
-                  title: Text(
-                    schedule['subject'],
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  subtitle: Text(
-                    schedule['class'],
-                    style: GoogleFonts.poppins(
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+        children:
+            todaysSchedule
+                .map(
+                  (schedule) => Column(
                     children: [
-                      Text(
-                        schedule['time'],
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.bold,
-                          color: schedule['color'],
+                      ListTile(
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        leading: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: schedule['color'].withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(Icons.schedule, color: schedule['color']),
+                        ),
+                        title: Text(
+                          schedule['subject'],
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        subtitle: Text(
+                          schedule['class'],
+                          style: GoogleFonts.poppins(color: Colors.grey[600]),
+                        ),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              schedule['time'],
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                color: schedule['color'],
+                              ),
+                            ),
+                            Text(
+                              schedule['room'],
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        schedule['room'],
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
+                      if (schedule != todaysSchedule.last)
+                        Divider(height: 1, indent: 16),
                     ],
                   ),
-                ),
-                if (schedule != todaysSchedule.last)
-                  Divider(height: 1, indent: 16),
-              ],
-            )).toList(),
+                )
+                .toList(),
       ),
     );
   }
@@ -574,7 +638,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
         crossAxisCount: 2,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        childAspectRatio: 1.3, // Adjusted from 1.5 to provide more vertical space
+        childAspectRatio: 1.3,
       ),
       itemCount: subjects.length,
       itemBuilder: (context, index) {
@@ -603,18 +667,24 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: () {
-                // Navigate to subject detail
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => SubjectDashboardScreen(subject: subject),
+                  ),
+                );
               },
               splashColor: Colors.white.withOpacity(0.2),
               child: Padding(
-                padding: EdgeInsets.all(12), // Reduced padding from 16 to 12
+                padding: EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      width: 36, // Reduced from 40
-                      height: 36, // Reduced from 40
+                      width: 36,
+                      height: 36,
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(8),
@@ -622,7 +692,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                       child: Icon(
                         subject['icon'],
                         color: Colors.white,
-                        size: 20, // Reduced icon size
+                        size: 20,
                       ),
                     ),
                     Column(
@@ -632,18 +702,18 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                           subject['name'],
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.bold,
-                            fontSize: 14, // Reduced from 16
+                            fontSize: 14,
                             color: Colors.white,
                           ),
-                          maxLines: 1, // Ensure single line
-                          overflow: TextOverflow.ellipsis, // Add ellipsis if too long
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: 2), // Reduced from 4
+                        SizedBox(height: 2),
                         Text(
                           subject['code'],
                           style: GoogleFonts.poppins(
                             color: Colors.white.withOpacity(0.9),
-                            fontSize: 10, // Reduced from 12
+                            fontSize: 10,
                           ),
                         ),
                       ],
@@ -657,7 +727,6 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
       },
     );
   }
-
 
   Widget _buildBottomNavBar(BuildContext context) {
     return Container(
@@ -688,7 +757,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
             // Handle navigation based on tab index
             switch (index) {
               case 0: // Home tab
-              // If already on home, do nothing
+                // If already on home, do nothing
                 if (ModalRoute.of(context)?.settings.name != '/') {
                   Navigator.pushReplacementNamed(context, '/');
                 }
@@ -705,12 +774,10 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => FullScheduleScreen(
-                      subject: {
-                        'name': 'All Subjects',
-                        'color': Theme.of(context).colorScheme.primary,
-                      },
-                    ),
+                    builder:
+                        (context) => FullScheduleScreen(
+                          schedule: todaysSchedule, // Pass your schedule data
+                        ),
                   ),
                 );
                 break;
