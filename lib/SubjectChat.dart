@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:file_picker/file_picker.dart';
 
 class SubjectChatScreen extends StatefulWidget {
   final Map<String, dynamic> subject;
@@ -13,17 +15,31 @@ class SubjectChatScreen extends StatefulWidget {
   _SubjectChatScreenState createState() => _SubjectChatScreenState();
 }
 
-class _SubjectChatScreenState extends State<SubjectChatScreen> {
+class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTickerProviderStateMixin {
   List<Map<String, dynamic>> messages = [];
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = true;
   bool _isSending = false;
   final String _apiUrl = 'https://your-api-endpoint.com/chat';
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  PlatformFile? _pickedFile; // To store the selected file
+
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeIn,
+      ),
+    );
     _fetchMessages();
   }
 
@@ -40,6 +56,7 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> {
           messages = List<Map<String, dynamic>>.from(data['messages']);
           _isLoading = false;
         });
+        _animationController.forward();
         _scrollToBottom();
       } else {
         throw Exception('Failed to load messages');
@@ -59,7 +76,7 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> {
 
     final newMessage = {
       'text': _messageController.text,
-      'is_teacher': true, // Assuming teacher is sending
+      'is_teacher': true,
       'timestamp': DateTime.now().toIso8601String(),
       'subject': widget.subject['code'],
     };
@@ -86,7 +103,6 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error sending message: $e')),
       );
-      // Remove the message if sending failed
       setState(() {
         messages.removeLast();
       });
@@ -98,7 +114,7 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> {
   }
 
   void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
@@ -109,68 +125,147 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> {
     });
   }
 
+  Future<void> _pickFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        allowMultiple: false,
+      );
+
+      if (result != null) {
+        setState(() {
+          _pickedFile = result.files.first;
+        });
+        // You can now upload this file or attach it to the message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('File selected: ${_pickedFile!.name}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error picking file: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final subjectColor = widget.subject['color'] ?? theme.primaryColor;
+    final isDarkMode = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      body: Column(
-        children: [
-          _buildChatHeader(),
-          Expanded(
-            child: _isLoading
-                ? Center(child: CircularProgressIndicator())
-                : messages.isEmpty
-                ? Center(
-              child: Text(
-                'No messages yet\nStart the conversation!',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  color: theme.colorScheme.onBackground.withOpacity(0.6),
+      backgroundColor: isDarkMode ? Colors.grey[900] : Colors.grey[50],
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildChatHeader(theme, subjectColor),
+            Expanded(
+              child: _isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : messages.isEmpty
+                  ? FadeTransition(
+                opacity: _fadeAnimation,
+                child: _buildEmptyState(theme),
+              )
+                  : ListView.builder(
+                controller: _scrollController,
+                padding: EdgeInsets.only(top: 8, bottom: 80),
+                itemCount: messages.length,
+                itemBuilder: (context, index) => SlideTransition(
+                  position: Tween<Offset>(
+                    begin: Offset(0, 0.5),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(
+                    parent: _animationController,
+                    curve: Interval(
+                      0.1 * index,
+                      1.0,
+                      curve: Curves.easeOut,
+                    ),
+                  )),
+                  child: _buildMessageBubble(
+                      messages[index], theme, subjectColor),
                 ),
               ),
-            )
-                : ListView.builder(
-              controller: _scrollController,
-              padding: EdgeInsets.symmetric(vertical: 8),
-              itemCount: messages.length,
-              itemBuilder: (context, index) =>
-                  _buildMessageBubble(messages[index], theme, subjectColor),
             ),
-          ),
-          _buildMessageInput(theme, subjectColor),
-        ],
+            _buildMessageInput(theme, subjectColor),
+          ],
+        ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Your navigation action
+        },
+        child: Icon(Icons.navigation),
+        backgroundColor: subjectColor,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
     );
   }
 
-  Widget _buildChatHeader() {
+  Widget _buildChatHeader(ThemeData theme, Color subjectColor) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       decoration: BoxDecoration(
-        color: widget.subject['color'] ?? Theme.of(context).primaryColor,
+        color: subjectColor,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 15,
             spreadRadius: 2,
+            offset: Offset(0, 3),
           ),
         ],
       ),
       child: Row(
         children: [
-          Icon(Icons.chat_bubble, color: Colors.white),
+          Icon(Icons.chat_bubble, color: Colors.white, size: 28),
           SizedBox(width: 12),
           Text(
             '${widget.subject['name']} Chat',
             style: GoogleFonts.poppins(
               color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Spacer(),
+          IconButton(
+            icon: Icon(Icons.more_vert, color: Colors.white),
+            onPressed: () {},
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.forum_outlined,
+            size: 80,
+            color: theme.colorScheme.onBackground.withOpacity(0.3),
+          ),
+          SizedBox(height: 16),
+          Text(
+            'No messages yet',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onBackground.withOpacity(0.6),
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Start the conversation!',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: theme.colorScheme.onBackground.withOpacity(0.4),
             ),
           ),
         ],
@@ -183,34 +278,35 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> {
     final isTeacher = message['is_teacher'] ?? false;
     final timestamp = DateTime.parse(message['timestamp']);
     final timeString = DateFormat('h:mm a').format(timestamp);
-
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Align(
         alignment: isTeacher ? Alignment.centerRight : Alignment.centerLeft,
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+          constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.8),
           child: Column(
             crossAxisAlignment:
             isTeacher ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
               Container(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: isTeacher
-                      ? subjectColor.withOpacity(0.9)
+                      ? subjectColor
                       : theme.colorScheme.surface,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(isTeacher ? 12 : 0),
-                    topRight: Radius.circular(isTeacher ? 0 : 12),
-                    bottomLeft: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
+                    topLeft: Radius.circular(isTeacher ? 18 : 0),
+                    topRight: Radius.circular(isTeacher ? 0 : 18),
+                    bottomLeft: Radius.circular(18),
+                    bottomRight: Radius.circular(18),
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
-                      blurRadius: 4,
+                      blurRadius: 6,
                       spreadRadius: 1,
+                      offset: Offset(0, 2),
                     ),
                   ],
                 ),
@@ -218,15 +314,19 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> {
                   message['text'],
                   style: GoogleFonts.poppins(
                     color: isTeacher ? Colors.white : theme.colorScheme.onSurface,
+                    fontSize: 15,
                   ),
                 ),
               ),
-              SizedBox(height: 4),
-              Text(
-                timeString,
-                style: GoogleFonts.poppins(
-                  fontSize: 10,
-                  color: theme.colorScheme.onBackground.withOpacity(0.5),
+              SizedBox(height: 6),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  timeString,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    color: theme.colorScheme.onBackground.withOpacity(0.4),
+                  ),
                 ),
               ),
             ],
@@ -238,7 +338,12 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> {
 
   Widget _buildMessageInput(ThemeData theme, Color subjectColor) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        top: 8,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         boxShadow: [
@@ -246,67 +351,116 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> {
             color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             spreadRadius: 2,
+            offset: Offset(0, -2),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: Container(
+          if (_pickedFile != null)
+            Container(
+              padding: EdgeInsets.all(8),
+              margin: EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withOpacity(0.2),
-                ),
+                color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
-                  SizedBox(width: 12),
+                  Icon(Icons.insert_drive_file, color: subjectColor),
+                  SizedBox(width: 8),
                   Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      decoration: InputDecoration(
-                        hintText: 'Type your message...',
-                        border: InputBorder.none,
-                        hintStyle: GoogleFonts.poppins(
-                          color: theme.colorScheme.onSurface.withOpacity(0.5),
-                        ),
-                      ),
+                    child: Text(
+                      _pickedFile!.name,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(),
-                      maxLines: null,
-                      onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.attach_file),
+                    icon: Icon(Icons.close, size: 18),
                     onPressed: () {
-                      // Add attachment functionality
+                      setState(() {
+                        _pickedFile = null;
+                      });
                     },
                   ),
                 ],
               ),
             ),
-          ),
-          SizedBox(width: 8),
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: subjectColor,
-            ),
-            child: IconButton(
-              icon: _isSending
-                  ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: theme.colorScheme.outline.withOpacity(0.1),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: TextField(
+                          controller: _messageController,
+                          decoration: InputDecoration(
+                            hintText: 'Type your message...',
+                            border: InputBorder.none,
+                            hintStyle: GoogleFonts.poppins(
+                              color: theme.colorScheme.onSurface.withOpacity(0.5),
+                            ),
+                          ),
+                          style: GoogleFonts.poppins(),
+                          maxLines: null,
+                          onSubmitted: (_) => _sendMessage(),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.attach_file, color: subjectColor),
+                        onPressed: _pickFile,
+                      ),
+                      SizedBox(width: 4),
+                    ],
+                  ),
                 ),
-              )
-                  : Icon(Icons.send, color: Colors.white),
-              onPressed: _isSending ? null : _sendMessage,
-            ),
+              ),
+              SizedBox(width: 10),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: subjectColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: subjectColor.withOpacity(0.3),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: _isSending ? null : _sendMessage,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: _isSending
+                          ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                          : Icon(Icons.send_rounded, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -317,6 +471,7 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 }
