@@ -10,7 +10,8 @@ import 'MarkedAssessment.dart';
 class SubjectResultsScreen extends StatefulWidget {
   final Map<String, dynamic> subject;
 
-  const SubjectResultsScreen({Key? key, required this.subject}) : super(key: key);
+  const SubjectResultsScreen({Key? key, required this.subject})
+    : super(key: key);
 
   @override
   _SubjectResultsScreenState createState() => _SubjectResultsScreenState();
@@ -49,9 +50,9 @@ class _SubjectResultsScreenState extends State<SubjectResultsScreen> {
       setState(() {
         isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading results: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading results: $e')));
     }
   }
 
@@ -142,134 +143,149 @@ class _SubjectResultsScreenState extends State<SubjectResultsScreen> {
           centerTitle: true,
           elevation: 0,
           bottom: TabBar(
+            isScrollable: true,
             indicatorColor: Colors.white,
             tabs: [
-              Tab(
-                child: Text(
-                  'Student Results',
-                  style: GoogleFonts.poppins(),
-                ),
-              ),
-              Tab(
-                child: Text(
-                  'Assessments',
-                  style: GoogleFonts.poppins(),
-                ),
-              ),
+              Tab(child: Text('Student Results', style: GoogleFonts.poppins())),
+              Tab(child: Text('Assessments', style: GoogleFonts.poppins())),
             ],
           ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.bar_chart),
-              onPressed: () {
-                // Show analytics
-              },
-            ),
-          ],
         ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: subjectColor,
-          child: Icon(Icons.add), // This should show the plus (+) icon
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CreateAssessmentScreen(
-                  subjectCode: widget.subject['code'],
-                  subjectColor: subjectColor,
+        body:
+            isLoading
+                ? Center(child: CircularProgressIndicator())
+                : TabBarView(
+                  children: [
+                    _buildResultsTab(theme, subjectColor),
+                    _buildAssessmentsTab(theme, subjectColor),
+                  ],
                 ),
-              ),
-            ).then((_) => _fetchResults());
-          },
-        ),
-        body: isLoading
-            ? Center(child: CircularProgressIndicator())
-            : TabBarView(
-          children: [
-            _buildResultsTab(theme, subjectColor),
-            _buildAssessmentsTab(theme, subjectColor),
-          ],
-        ),
       ),
     );
   }
 
   Widget _buildResultsTab(ThemeData theme, Color subjectColor) {
-    final assessmentColumns = assessments
-        .where((a) => a['is_marked'] == true)
-        .map((a) => DataColumn(
-      label: Text(
-        a['title'],
-        style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-      ),
-    ))
-        .toList();
+    final markedAssessments =
+        assessments.where((a) => a['is_marked'] == true).toList();
+    final averageScore =
+        results.isEmpty
+            ? 0
+            : results.map((r) => r['total']).reduce((a, b) => a + b) /
+                results.length;
+    final topStudent =
+        results.isEmpty
+            ? null
+            : results.reduce((a, b) => a['total'] > b['total'] ? a : b);
 
     return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: SingleChildScrollView(
-        child: DataTable(
-          columnSpacing: 24,
-          horizontalMargin: 16,
-          columns: [
-            DataColumn(
-              label: Text(
-                'Student',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-              ),
-            ),
-            ...assessmentColumns,
-            DataColumn(
-              label: Text(
-                'Total',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                'Grade',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-          rows: results.map((result) {
-            final cells = [
-              DataCell(
-                Text(
-                  result['student_name'],
-                  style: GoogleFonts.poppins(),
+      child: Column(
+        children: [
+          // Summary Section
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildSummaryCard(
+                  'Students',
+                  results.length.toString(),
+                  Icons.people,
+                  subjectColor,
                 ),
-              ),
-            ];
+                _buildSummaryCard(
+                  'Avg Score',
+                  averageScore.toStringAsFixed(1),
+                  Icons.bar_chart,
+                  subjectColor,
+                ),
+                _buildSummaryCard(
+                  'Top Student',
+                  topStudent?['student_name'] ?? '-',
+                  Icons.star,
+                  subjectColor,
+                ),
+              ],
+            ),
+          ),
 
-            // Add assessment marks
-            for (var assessment in assessments.where((a) => a['is_marked'] == true)) {
-              final assessmentKey = assessment['title'].toLowerCase().replaceAll(' ', '_');
-              cells.add(
-                DataCell(
-                  Text(
-                    result[assessmentKey]?.toString() ?? '-',
-                    style: GoogleFonts.poppins(),
+          // Results Table
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: DataTable(
+              columnSpacing: 24,
+              columns: [
+                DataColumn(
+                  label: Text(
+                    'Student',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
                   ),
                 ),
-              );
-            }
+                ...markedAssessments.map((assessment) {
+                  return DataColumn(
+                    label: Text(
+                      assessment['title'],
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                    ),
+                  );
+                }).toList(),
+              ],
+              rows:
+                  results.map((student) {
+                    return DataRow(
+                      cells: [
+                        DataCell(
+                          Text(
+                            student['student_name'],
+                            style: GoogleFonts.poppins(),
+                          ),
+                        ),
+                        ...markedAssessments.map((assessment) {
+                          final key = assessment['title']
+                              .toLowerCase()
+                              .replaceAll(' ', '_');
+                          return DataCell(
+                            Text(
+                              student[key]?.toString() ?? '-',
+                              style: GoogleFonts.poppins(),
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                    );
+                  }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-            // Add total and grade
-            cells.addAll([
-              DataCell(
-                Text(
-                  result['total'].toString(),
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+  Widget _buildSummaryCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Expanded(
+      child: Card(
+        elevation: 2,
+        child: Padding(
+          padding: EdgeInsets.all(12),
+          child: Column(
+            children: [
+              Icon(icon, size: 24, color: color),
+              SizedBox(height: 8),
+              Text(title, style: GoogleFonts.poppins(fontSize: 12)),
+              SizedBox(height: 4),
+              Text(
+                value,
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ),
-              DataCell(
-                _buildGradeIndicator(result['total'], subjectColor),
-              ),
-            ]);
-
-            return DataRow(cells: cells);
-          }).toList(),
+            ],
+          ),
         ),
       ),
     );
@@ -278,192 +294,159 @@ class _SubjectResultsScreenState extends State<SubjectResultsScreen> {
   Widget _buildGradeIndicator(int total, Color subjectColor) {
     String grade;
     Color color;
+    IconData icon;
 
     if (total >= 280) {
       grade = 'A+';
       color = Colors.green;
+      icon = Icons.sentiment_very_satisfied;
     } else if (total >= 250) {
       grade = 'A';
       color = Colors.green;
+      icon = Icons.sentiment_satisfied;
     } else if (total >= 220) {
       grade = 'B+';
       color = Colors.lightGreen;
+      icon = Icons.sentiment_neutral;
     } else if (total >= 190) {
       grade = 'B';
       color = Colors.lightGreen;
+      icon = Icons.sentiment_neutral;
     } else if (total >= 160) {
       grade = 'C+';
       color = Colors.orange;
+      icon = Icons.sentiment_dissatisfied;
     } else if (total >= 130) {
       grade = 'C';
       color = Colors.orange;
+      icon = Icons.sentiment_dissatisfied;
     } else {
       grade = 'D';
       color = Colors.red;
+      icon = Icons.sentiment_very_dissatisfied;
     }
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color),
-      ),
-      child: Text(
-        grade,
-        style: GoogleFonts.poppins(
-          fontWeight: FontWeight.bold,
-          color: color,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 18, color: color),
+        SizedBox(width: 4),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color),
+          ),
+          child: Text(
+            grade,
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 
   Widget _buildAssessmentsTab(ThemeData theme, Color subjectColor) {
-    return ListView.builder(
-      padding: EdgeInsets.all(16),
-      itemCount: assessments.length,
-      itemBuilder: (context, index) {
-        final assessment = assessments[index];
-        final isMarked = assessment['is_marked'] == true;
-        final date = DateFormat('MMM d, y').format(DateTime.parse(assessment['date']));
-
-        return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: EdgeInsets.only(bottom: 16),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: () {
-              if (isMarked) {
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MarkedAssessmentsScreen(
-                      subjectCode: widget.subject['code'],
-                      subjectColor: subjectColor,
-                    ),
-                  ),
-                );
-              } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EnterMarksScreen(
-                      assessmentId: assessment['id'],
-                      assessmentTitle: assessment['title'],
-                      totalMarks: assessment['total_marks'],
-                      subjectColor: subjectColor,
-                    ),
+                    builder:
+                        (context) => CreateAssessmentScreen(
+                          subjectCode: widget.subject['code'],
+                          subjectColor: subjectColor,
+                        ),
                   ),
                 ).then((_) => _fetchResults());
-              }
-            },
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: subjectColor,
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Add Announcement',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            itemCount: assessments.length,
+            itemBuilder: (context, index) {
+              final assessment = assessments[index];
+              return Card(
+                margin: EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  title: Text(
+                    assessment['title'],
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        assessment['title'],
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Chip(
-                        label: Text(
-                          assessment['type'].toString().toUpperCase(),
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.white,
-                          ),
-                        ),
-                        backgroundColor: subjectColor,
-                      ),
+                      Text('Type: ${assessment['type']}'),
+                      Text('Date: ${assessment['date']}'),
                     ],
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Total Marks: ${assessment['total_marks']}',
-                    style: GoogleFonts.poppins(),
+                  trailing: Icon(
+                    assessment['is_marked']
+                        ? Icons.check_circle
+                        : Icons.pending,
+                    color:
+                        assessment['is_marked'] ? Colors.green : Colors.orange,
                   ),
-                  SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        date,
-                        style: GoogleFonts.poppins(
-                          color: Colors.grey,
+                  onTap: () {
+                    if (assessment['is_marked']) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => MarkedAssessmentsScreen(
+                                subjectCode: widget.subject['code'],
+                                subjectColor: subjectColor,
+                              ),
                         ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isMarked
-                              ? Colors.green.withOpacity(0.1)
-                              : Colors.orange.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isMarked ? Colors.green : Colors.orange,
-                          ),
-                        ),
-                        child: Text(
-                          isMarked ? 'MARKED' : 'PENDING',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: isMarked ? Colors.green : Colors.orange,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (!isMarked) ...[
-                    SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: subjectColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EnterMarksScreen(
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => EnterMarksScreen(
                                 assessmentId: assessment['id'],
                                 assessmentTitle: assessment['title'],
                                 totalMarks: assessment['total_marks'],
                                 subjectColor: subjectColor,
                               ),
-                            ),
-                          ).then((_) => _fetchResults());
-                        },
-                        child: Text(
-                          'Enter Marks',
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                          ),
                         ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+                      ).then((_) => _fetchResults());
+                    }
+                  },
+                ),
+              );
+            },
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }

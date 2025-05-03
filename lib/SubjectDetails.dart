@@ -380,13 +380,6 @@ class _SubjectDashboardScreenState extends State<SubjectDashboardScreen> {
             ],
           ),
           SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildStatItem('3', 'Pending Queries', Icons.question_answer),
-              _buildStatItem('4.2', 'Avg. Grade', Icons.star),
-            ],
-          ),
         ],
       ),
     );

@@ -134,6 +134,7 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
     final subjectColor = widget.subject['color'] ?? theme.primaryColor;
 
     return Scaffold(
+      extendBody: true, // Add this line
       appBar: AppBar(
         title: Text(
           '${widget.subject['name']} Assignments',
@@ -172,13 +173,6 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
                       ),
                 ),
               ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: subjectColor,
-        child: const Icon(Icons.add),
-        onPressed: () {
-          // Add new assignment
-        },
-      ),
     );
   }
 

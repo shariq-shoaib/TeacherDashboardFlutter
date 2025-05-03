@@ -106,56 +106,25 @@ class _SubjectQueriesScreenState extends State<SubjectQueriesScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        child: Text(query['student_avatar']),
-                        backgroundColor: subjectColor.withOpacity(0.2),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        query['student_name'],
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'Respond to ${query['student_name']}',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'Question:',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      query['question'],
-                      style: GoogleFonts.poppins(),
-                    ),
-                  ),
+                  Text(query['question'], style: GoogleFonts.poppins()),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _responseController,
                     decoration: InputDecoration(
                       labelText: 'Your Response',
-                      labelStyle: GoogleFonts.poppins(),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
                     ),
                     maxLines: 4,
-                    style: GoogleFonts.poppins(),
                   ),
                   const SizedBox(height: 20),
                   Row(
@@ -163,22 +132,12 @@ class _SubjectQueriesScreenState extends State<SubjectQueriesScreen> {
                     children: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: Text(
-                          'Cancel',
-                          style: GoogleFonts.poppins(color: Colors.grey[600]),
-                        ),
+                        child: Text('Cancel'),
                       ),
                       const SizedBox(width: 8),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: subjectColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
                         ),
                         onPressed: () {
                           _respondToQuery(
@@ -188,10 +147,7 @@ class _SubjectQueriesScreenState extends State<SubjectQueriesScreen> {
                           _responseController.clear();
                           Navigator.pop(context);
                         },
-                        child: Text(
-                          'Send',
-                          style: GoogleFonts.poppins(color: Colors.white),
-                        ),
+                        child: Text('Send'),
                       ),
                     ],
                   ),
@@ -208,49 +164,41 @@ class _SubjectQueriesScreenState extends State<SubjectQueriesScreen> {
     final subjectColor = widget.subject['color'] ?? theme.primaryColor;
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            title: Text(
-              'Student Queries',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            backgroundColor: subjectColor,
-            centerTitle: true,
-            expandedHeight: 120,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      subjectColor.withOpacity(0.8),
-                      subjectColor.withOpacity(0.6),
-                    ],
+      appBar: AppBar(
+        title: Text(
+          '${widget.subject['name']} Queries', // Dynamic subject name
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: subjectColor,
+        centerTitle: true,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+        ),
+      ),
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : queries.isEmpty
+              ? Center(
+                child: Text(
+                  'No queries yet',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: theme.colorScheme.onBackground.withOpacity(0.6),
                   ),
                 ),
+              )
+              : RefreshIndicator(
+                onRefresh: () async => _loadDummyData(),
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: queries.length,
+                  itemBuilder:
+                      (context, index) =>
+                          _buildQueryCard(queries[index], theme, subjectColor),
+                ),
               ),
-            ),
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) =>
-                  _buildQueryCard(queries[index], theme, subjectColor),
-              childCount: queries.length,
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: subjectColor,
-        child: const Icon(Icons.refresh, color: Colors.white),
-        onPressed: _loadDummyData,
-      ),
     );
   }
 
@@ -260,157 +208,114 @@ class _SubjectQueriesScreenState extends State<SubjectQueriesScreen> {
     Color subjectColor,
   ) {
     final isPending = query['status'] == 'pending';
-    final date =
-        query['created_at'] != null
-            ? DateFormat(
-              'MMM d, h:mm a',
-            ).format(DateTime.parse(query['created_at']))
-            : '';
+    final date = DateFormat(
+      'MMM d, h:mm a',
+    ).format(DateTime.parse(query['created_at']));
     final hasResponse = query['response'] != null;
 
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      child: Card(
-        elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () => _showResponseDialog(query),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Status chip aligned to right like assignments screen
+            Align(
+              alignment: Alignment.centerRight,
+              child: Chip(
+                label: Text(
+                  isPending ? 'PENDING' : 'RESOLVED',
+                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.white),
+                ),
+                backgroundColor: isPending ? Colors.orange : Colors.green,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Student info
+            Row(
               children: [
-                Row(
+                CircleAvatar(
+                  backgroundColor: subjectColor.withAlpha(
+                    51,
+                  ), // Replaced withAlpha for opacity
+                  child: Text(
+                    query['student_avatar'],
+                  ), // Moved child to the end
+                ),
+                const SizedBox(width: 12), // Corrected misplaced const
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      child: Text(query['student_avatar']),
-                      backgroundColor: subjectColor.withOpacity(0.2),
-                      radius: 20,
+                    Text(
+                      query['student_name'],
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            query['student_name'],
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            date,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            isPending
-                                ? Colors.orange.withOpacity(0.1)
-                                : Colors.green.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isPending ? Colors.orange : Colors.green,
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        isPending ? 'PENDING' : 'RESOLVED',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: isPending ? Colors.orange : Colors.green,
-                        ),
+                    Text(
+                      date,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: theme.colorScheme.onBackground.withOpacity(0.6),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  query['question'],
-                  style: GoogleFonts.poppins(fontSize: 14, height: 1.4),
-                ),
-                if (hasResponse) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: subjectColor.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: subjectColor.withOpacity(0.2)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.check_circle,
-                              color: subjectColor,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Your Response',
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.bold,
-                                color: subjectColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          query['response'],
-                          style: GoogleFonts.poppins(fontSize: 14, height: 1.4),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                if (isPending) ...[
-                  const SizedBox(height: 16),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: subjectColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                      ),
-                      onPressed: () => _showResponseDialog(query),
-                      child: Text(
-                        'Respond Now',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
               ],
             ),
-          ),
+
+            const SizedBox(height: 12),
+
+            // Question
+            Text(
+              query['question'],
+              style: GoogleFonts.poppins(
+                color: theme.colorScheme.onBackground.withOpacity(0.8),
+              ),
+            ),
+
+            if (hasResponse) ...[
+              const SizedBox(height: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Your Response',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(query['response'], style: GoogleFonts.poppins()),
+                ],
+              ),
+            ],
+
+            if (isPending) ...[
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start, // Align to the left
+                children: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: subjectColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () => _showResponseDialog(query),
+                    child: Text(
+                      'Respond Now',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
         ),
       ),
     );
