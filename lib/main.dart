@@ -259,8 +259,10 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                   context,
                   MaterialPageRoute(
                     builder:
-                        (context) =>
-                            FullScheduleScreen(schedule: todaysSchedule),
+                        (context) => FullScheduleScreen(
+                          teacherId: '12345',
+                          schedule: todaysSchedule,
+                        ),
                   ),
                 );
               },
@@ -269,7 +271,6 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
             _buildScheduleList(context),
             SizedBox(height: 24),
 
-            // Subjects Quick Access
             _buildSectionHeader(context, 'Your Subjects', ''),
             SizedBox(height: 12),
             _buildSubjectsGrid(),
@@ -776,6 +777,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
                   MaterialPageRoute(
                     builder:
                         (context) => FullScheduleScreen(
+                          teacherId: '12345', // Replace with actual teacher ID
                           schedule: todaysSchedule, // Pass your schedule data
                         ),
                   ),

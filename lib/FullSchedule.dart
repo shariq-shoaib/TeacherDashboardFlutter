@@ -2,13 +2,60 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class ClassSchedule {
+  final String id;
+  final String subject;
+  final String time;
+  final String room;
+  final DateTime date;
+  final String classType;
+  final String teacher;
+
+  ClassSchedule({
+    required this.id,
+    required this.subject,
+    required this.time,
+    required this.room,
+    required this.date,
+    required this.classType,
+    required this.teacher,
+  });
+
+  factory ClassSchedule.fromJson(Map<String, dynamic> json) {
+    return ClassSchedule(
+      id: json['id'] as String,
+      subject: json['subject'] as String,
+      time: json['time'] as String,
+      room: json['room'] as String,
+      date: DateTime.parse(json['date'] as String),
+      classType: json['classType'] as String,
+      teacher: json['teacher'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'subject': subject,
+    'time': time,
+    'room': room,
+    'date': date.toIso8601String(),
+    'classType': classType,
+    'teacher': teacher,
+  };
+}
 
 class FullScheduleScreen extends StatefulWidget {
+  const FullScheduleScreen({
+    Key? key,
+    required this.schedule,
+    required this.teacherId,
+  }) : super(key: key);
+
   final List<Map<String, dynamic>> schedule;
-
-  const FullScheduleScreen({Key? key, required this.schedule})
-    : super(key: key);
-
+  final String teacherId;
   @override
   _FullScheduleScreenState createState() => _FullScheduleScreenState();
 }
@@ -19,7 +66,28 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
   DateTime _selectedDay = DateTime.now();
   final Color _primaryColor = const Color(0xFF4361EE);
   final Color _backgroundColor = const Color(0xFFF8F9FF);
-  int _currentIndex = 1; // Default to weekly view
+  int _currentIndex = 1;
+
+  List<ClassSchedule> _schedule = [
+    ClassSchedule(
+      id: '1',
+      subject: 'Mathematics',
+      time: '09:00 AM - 10:30 AM',
+      room: 'Room 101',
+      date: DateTime.now(),
+      classType: 'Lecture',
+      teacher: 'Dr. Robert Chen',
+    ),
+    ClassSchedule(
+      id: '2',
+      subject: 'Physics',
+      time: '11:00 AM - 12:30 PM',
+      room: 'Lab 205',
+      date: DateTime.now(),
+      classType: 'Lab',
+      teacher: 'Dr. Robert Chen',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -49,33 +117,38 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
       body: _buildCurrentView(),
       floatingActionButton: FloatingActionButton(
         backgroundColor: _primaryColor,
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white),
         onPressed: _showAddClassDialog,
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
+  BottomNavigationBar _buildBottomNavigationBar() {
+    return BottomNavigationBar(
+      currentIndex: _currentIndex,
+      onTap:
+          (index) => setState(() {
             _currentIndex = index;
             if (index == 1) {
-              // Weekly view
               _focusedDay = DateTime.now();
               _selectedDay = DateTime.now();
             }
-          });
-        },
-        backgroundColor: _primaryColor,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white.withOpacity(0.6),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Calendar',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.view_week), label: 'Week'),
-          BottomNavigationBarItem(icon: Icon(Icons.today), label: 'Day'),
-        ],
-      ),
+          }),
+      backgroundColor: Colors.white,
+      selectedItemColor: _primaryColor,
+      unselectedItemColor: Colors.grey,
+      showSelectedLabels: true,
+      showUnselectedLabels: true,
+      type: BottomNavigationBarType.fixed,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.calendar_today),
+          label: 'Calendar',
+        ),
+        BottomNavigationBarItem(icon: Icon(Icons.view_week), label: 'Week'),
+        BottomNavigationBarItem(icon: Icon(Icons.today), label: 'Day'),
+      ],
     );
   }
 
@@ -95,7 +168,7 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
   Widget _buildCalendarView() {
     return Column(
       children: [
-        // Clean Month Header
+        // Month header and navigation buttons
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Row(
@@ -106,7 +179,6 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
                 ),
               ),
               Row(
@@ -137,7 +209,7 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
           ),
         ),
 
-        // Weekday Headers
+        // Weekday headers
         Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
@@ -161,7 +233,7 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
           ),
         ),
 
-        // Calendar Grid
+        // Calendar grid - now in an Expanded widget
         Expanded(
           child: TableCalendar(
             firstDay: DateTime.now().subtract(const Duration(days: 365)),
@@ -193,48 +265,33 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
           ),
         ),
 
-        // Selected Day Section
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: Colors.grey[200]!)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                DateFormat('EEEE, MMMM d').format(_selectedDay),
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: _primaryColor,
-                ),
+        // Selected day section - now in a Flexible widget with SingleChildScrollView
+        Flexible(
+          child: SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: Colors.grey[200]!)),
               ),
-              const SizedBox(height: 8),
-              _buildDayScheduleSection(_selectedDay),
-            ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    DateFormat('EEEE, MMMM d').format(_selectedDay),
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: _primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildDayScheduleSection(_selectedDay),
+                ],
+              ),
+            ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildDayScheduleSection(DateTime day) {
-    final daySchedule =
-        widget.schedule.where((item) => isSameDay(item['date'], day)).toList();
-
-    if (daySchedule.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Text(
-          'No classes scheduled',
-          style: GoogleFonts.poppins(color: Colors.grey[600]),
-        ),
-      );
-    }
-
-    return Column(
-      children: daySchedule.map((item) => _buildScheduleItem(item)).toList(),
     );
   }
 
@@ -244,7 +301,6 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
 
     return Column(
       children: [
-        // Weekday headers
         Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
@@ -265,7 +321,7 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
                       onTap: () {
                         setState(() {
                           _selectedDay = day;
-                          _currentIndex = 2; // Switch to daily view
+                          _currentIndex = 2;
                         });
                       },
                       child: Container(
@@ -311,13 +367,14 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
                 }).toList(),
           ),
         ),
-        // Weekly schedule content
         Expanded(
-          child: ListView(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
-            children: [
-              for (final day in weekDays) _buildDayScheduleSection(day),
-            ],
+            child: Column(
+              children: [
+                for (final day in weekDays) _buildDayScheduleSection(day),
+              ],
+            ),
           ),
         ),
       ],
@@ -326,45 +383,102 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
 
   Widget _buildDailyView() {
     final daySchedule =
-        widget.schedule.where((item) {
-          return isSameDay(item['date'], _selectedDay);
-        }).toList();
+        _schedule.where((item) => isSameDay(item.date, _selectedDay)).toList();
 
-    return ListView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            DateFormat('EEEE, MMMM d').format(_selectedDay),
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: _primaryColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (daySchedule.isEmpty)
+            _buildEmptyState()
+          else
+            ...daySchedule.map((item) => _buildScheduleItem(item)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDayScheduleSection(DateTime day) {
+    final daySchedule =
+        _schedule.where((item) => isSameDay(item.date, day)).toList();
+
+    if (daySchedule.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Column(
+          children: [
+            Text(
+              DateFormat('EEEE, MMMM d').format(day),
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildEmptyState(),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          DateFormat('EEEE, MMMM d').format(_selectedDay),
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: _primaryColor,
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            DateFormat('EEEE, MMMM d').format(day),
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
+            ),
           ),
         ),
-        const SizedBox(height: 16),
-        if (daySchedule.isEmpty)
-          Center(
-            child: Column(
-              children: [
-                Icon(Icons.event_available, size: 60, color: Colors.grey[400]),
-                const SizedBox(height: 16),
-                Text(
-                  'No classes scheduled for this day',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          )
-        else
-          ...daySchedule.map((item) => _buildScheduleItem(item)),
+        ...daySchedule.map((item) => _buildScheduleItem(item)),
       ],
     );
   }
 
-  Widget _buildScheduleItem(Map<String, dynamic> item) {
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(Icons.event_available, size: 60, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'No classes scheduled',
+              style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScheduleItem(ClassSchedule item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -383,13 +497,36 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              item['subject'],
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: Colors.black87,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  item.subject,
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: Colors.black87,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    item.classType,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: _primaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Row(
@@ -397,7 +534,7 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
                 Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
                 const SizedBox(width: 8),
                 Text(
-                  item['time'],
+                  item.time,
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     color: Colors.grey[600],
@@ -411,7 +548,21 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
                 Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
                 const SizedBox(width: 8),
                 Text(
-                  item['room'],
+                  item.room,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.person, size: 16, color: Colors.grey[600]),
+                const SizedBox(width: 8),
+                Text(
+                  item.teacher,
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     color: Colors.grey[600],
@@ -426,21 +577,153 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
   }
 
   Future<void> _showAddClassDialog() async {
-    // Implement your add class dialog here
-    // This should collect: subject, time, room, date, etc.
-    // Then add to widget.schedule
-    showDialog(
+    final formKey = GlobalKey<FormState>();
+    String subject = '';
+    String time = '';
+    String room = '';
+    DateTime selectedDate = DateTime.now();
+    String classType = 'Lecture';
+
+    await showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Add Class'),
-          content: const Text('This is a placeholder for adding a class.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
-            ),
-          ],
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Add New Class', style: GoogleFonts.poppins()),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Subject',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator:
+                            (value) =>
+                                value?.isEmpty ?? true ? 'Required' : null,
+                        onSaved: (value) => subject = value ?? '',
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Time (e.g., 09:00 AM - 10:30 AM)',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator:
+                            (value) =>
+                                value?.isEmpty ?? true ? 'Required' : null,
+                        onSaved: (value) => time = value ?? '',
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Room',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator:
+                            (value) =>
+                                value?.isEmpty ?? true ? 'Required' : null,
+                        onSaved: (value) => room = value ?? '',
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: classType,
+                        decoration: const InputDecoration(
+                          labelText: 'Class Type',
+                          border: OutlineInputBorder(),
+                        ),
+                        items:
+                            ['Lecture', 'Lab', 'Tutorial', 'Seminar']
+                                .map(
+                                  (type) => DropdownMenuItem(
+                                    value: type,
+                                    child: Text(type),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => classType = value);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      InkWell(
+                        onTap: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365),
+                            ),
+                          );
+                          if (date != null) {
+                            setState(() => selectedDate = date);
+                          }
+                        },
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Date',
+                            border: OutlineInputBorder(),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(DateFormat.yMd().format(selectedDate)),
+                              const Icon(Icons.calendar_today),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primaryColor,
+                  ),
+                  onPressed: () {
+                    if (formKey.currentState?.validate() ?? false) {
+                      formKey.currentState?.save();
+                      final newClass = ClassSchedule(
+                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                        subject: subject,
+                        time: time,
+                        room: room,
+                        date: selectedDate,
+                        classType: classType,
+                        teacher: 'Dr. Robert Chen',
+                      );
+                      setState(() {
+                        _schedule.add(newClass);
+                      });
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Class added successfully'),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text(
+                    'Add Class',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -577,5 +860,41 @@ class TodayScheduleScreen extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     return DateFormat('EEEE, MMMM d').format(date);
+  }
+}
+
+// API Service class
+class ScheduleApiService {
+  static const String baseUrl = 'https://your-api-url.com/api/schedule';
+
+  static Future<List<ClassSchedule>> fetchSchedule(String teacherId) async {
+    final response = await http.get(Uri.parse('$baseUrl?teacherId=$teacherId'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((item) => ClassSchedule.fromJson(item)).toList();
+    } else {
+      throw Exception('Failed to load schedule');
+    }
+  }
+
+  static Future<void> addSchedule(ClassSchedule schedule) async {
+    final response = await http.post(
+      Uri.parse(baseUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(schedule.toJson()),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to add schedule');
+    }
+  }
+
+  static Future<void> deleteSchedule(String id) async {
+    final response = await http.delete(Uri.parse('$baseUrl/$id'));
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete schedule');
+    }
   }
 }
