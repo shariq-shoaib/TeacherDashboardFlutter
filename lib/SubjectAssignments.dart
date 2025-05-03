@@ -7,8 +7,7 @@ import 'dart:convert';
 class SubjectAssignmentsScreen extends StatefulWidget {
   final Map<String, dynamic> subject;
 
-  const SubjectAssignmentsScreen({Key? key, required this.subject})
-    : super(key: key);
+  const SubjectAssignmentsScreen({super.key, required this.subject});
 
   @override
   _SubjectAssignmentsScreenState createState() =>
@@ -156,7 +155,7 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
                   'No assignments yet',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
-                    color: theme.colorScheme.onBackground.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
                   ),
                 ),
               )
@@ -217,7 +216,7 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
               Text(
                 assignment['description'],
                 style: GoogleFonts.poppins(
-                  color: theme.colorScheme.onBackground.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
               const SizedBox(height: 12),
@@ -226,14 +225,14 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
                   Icon(
                     Icons.calendar_today,
                     size: 16,
-                    color: theme.colorScheme.onBackground.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     'Due $formattedDate',
                     style: GoogleFonts.poppins(
                       fontSize: 14,
-                      color: theme.colorScheme.onBackground.withOpacity(0.8),
+                      color: theme.colorScheme.onSurface.withOpacity(0.8),
                     ),
                   ),
                   const Spacer(),
@@ -272,7 +271,7 @@ class _SubjectAssignmentsScreenState extends State<SubjectAssignmentsScreen> {
                     Icon(
                       Icons.attach_file,
                       size: 16,
-                      color: theme.colorScheme.onBackground.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
                     ),
                     ...assignment['attachments'].map<Widget>(
                       (file) => Chip(
@@ -314,11 +313,11 @@ class AssignmentSubmissionsScreen extends StatelessWidget {
   final Future<dynamic> Function(String) fetchSubmissions;
 
   const AssignmentSubmissionsScreen({
-    Key? key,
+    super.key,
     required this.assignment,
     required this.subjectColor,
     required this.fetchSubmissions,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -422,14 +421,14 @@ class AssignmentSubmissionsScreen extends StatelessWidget {
                   Icon(
                     Icons.calendar_today,
                     size: 14,
-                    color: theme.colorScheme.onBackground.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     submittedAt,
                     style: GoogleFonts.poppins(
                       fontSize: 12,
-                      color: theme.colorScheme.onBackground.withOpacity(0.8),
+                      color: theme.colorScheme.onSurface.withOpacity(0.8),
                     ),
                   ),
                 ],
@@ -440,7 +439,7 @@ class AssignmentSubmissionsScreen extends StatelessWidget {
                   Icon(
                     Icons.attach_file,
                     size: 14,
-                    color: theme.colorScheme.onBackground.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
                   ),
                   const SizedBox(width: 4),
                   Text(

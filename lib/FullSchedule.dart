@@ -49,10 +49,10 @@ class ClassSchedule {
 
 class FullScheduleScreen extends StatefulWidget {
   const FullScheduleScreen({
-    Key? key,
+    super.key,
     required this.schedule,
     required this.teacherId,
-  }) : super(key: key);
+  });
 
   final List<Map<String, dynamic>> schedule;
   final String teacherId;
@@ -61,14 +61,14 @@ class FullScheduleScreen extends StatefulWidget {
 }
 
 class _FullScheduleScreenState extends State<FullScheduleScreen> {
-  CalendarFormat _calendarFormat = CalendarFormat.week;
+  final CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   DateTime _selectedDay = DateTime.now();
   final Color _primaryColor = const Color(0xFF4361EE);
   final Color _backgroundColor = const Color(0xFFF8F9FF);
   int _currentIndex = 1;
 
-  List<ClassSchedule> _schedule = [
+  final List<ClassSchedule> _schedule = [
     ClassSchedule(
       id: '1',
       subject: 'Mathematics',
@@ -117,8 +117,8 @@ class _FullScheduleScreenState extends State<FullScheduleScreen> {
       body: _buildCurrentView(),
       floatingActionButton: FloatingActionButton(
         backgroundColor: _primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
         onPressed: _showAddClassDialog,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );
@@ -736,11 +736,11 @@ class TodayScheduleScreen extends StatelessWidget {
   final DateTime? date;
 
   const TodayScheduleScreen({
-    Key? key,
+    super.key,
     required this.schedule,
     this.isTodayOnly = false,
     this.date,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

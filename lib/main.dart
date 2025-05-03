@@ -14,6 +14,8 @@ void main() {
 }
 
 class TeacherApp extends StatelessWidget {
+  const TeacherApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -25,8 +27,7 @@ class TeacherApp extends StatelessWidget {
           primary: Color(0xFF4361EE), // Vibrant blue
           secondary: Color(0xFF7209B7), // Purple accent
           tertiary: Color(0xFF3A0CA3), // Deep purple
-          surface: Colors.white,
-          background: Color(0xFFF8F9FF), // Very light blue background
+          surface: Colors.white, // Very light blue background
         ),
         textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme),
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -37,6 +38,8 @@ class TeacherApp extends StatelessWidget {
 }
 
 class TeacherHomeScreen extends StatefulWidget {
+  const TeacherHomeScreen({super.key});
+
   @override
   _TeacherHomeScreenState createState() => _TeacherHomeScreenState();
 }
@@ -193,7 +196,7 @@ class _TeacherHomeScreenState extends State<TeacherHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Teacher Dashboard',

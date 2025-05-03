@@ -9,13 +9,14 @@ class MarkedAssessmentsScreen extends StatefulWidget {
   final Color subjectColor;
 
   const MarkedAssessmentsScreen({
-    Key? key,
+    super.key,
     required this.subjectCode,
     required this.subjectColor,
-  }) : super(key: key);
+  });
 
   @override
-  _MarkedAssessmentsScreenState createState() => _MarkedAssessmentsScreenState();
+  _MarkedAssessmentsScreenState createState() =>
+      _MarkedAssessmentsScreenState();
 }
 
 class _MarkedAssessmentsScreenState extends State<MarkedAssessmentsScreen> {
@@ -34,12 +35,16 @@ class _MarkedAssessmentsScreenState extends State<MarkedAssessmentsScreen> {
   Future<void> _fetchAssessments() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl$assessmentsEndpoint?subject=${widget.subjectCode}&marked=true'),
+        Uri.parse(
+          '$baseUrl$assessmentsEndpoint?subject=${widget.subjectCode}&marked=true',
+        ),
       );
 
       if (response.statusCode == 200) {
         setState(() {
-          _assessments = List<Map<String, dynamic>>.from(json.decode(response.body));
+          _assessments = List<Map<String, dynamic>>.from(
+            json.decode(response.body),
+          );
           _isLoading = false;
         });
       } else {
@@ -47,9 +52,9 @@ class _MarkedAssessmentsScreenState extends State<MarkedAssessmentsScreen> {
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     }
   }
 
@@ -57,14 +62,19 @@ class _MarkedAssessmentsScreenState extends State<MarkedAssessmentsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EnterMarksScreen(
-          assessmentId: assessmentId,
-          assessmentTitle: _assessments
-              .firstWhere((a) => a['id'] == assessmentId)['title'],
-          totalMarks: _assessments
-              .firstWhere((a) => a['id'] == assessmentId)['total_marks'],
-          subjectColor: widget.subjectColor,
-        ),
+        builder:
+            (context) => EnterMarksScreen(
+              assessmentId: assessmentId,
+              assessmentTitle:
+                  _assessments.firstWhere(
+                    (a) => a['id'] == assessmentId,
+                  )['title'],
+              totalMarks:
+                  _assessments.firstWhere(
+                    (a) => a['id'] == assessmentId,
+                  )['total_marks'],
+              subjectColor: widget.subjectColor,
+            ),
       ),
     ).then((_) => _fetchAssessments());
   }
@@ -84,87 +94,91 @@ class _MarkedAssessmentsScreenState extends State<MarkedAssessmentsScreen> {
         elevation: 0,
         centerTitle: true,
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : _assessments.isEmpty
-          ? Center(
-        child: Text(
-          'No marked assessments found',
-          style: GoogleFonts.poppins(fontSize: 16),
-        ),
-      )
-          : ListView.builder(
-        padding: EdgeInsets.all(16),
-        itemCount: _assessments.length,
-        itemBuilder: (context, index) {
-          final assessment = _assessments[index];
-          return Card(
-            elevation: 2,
-            margin: EdgeInsets.only(bottom: 16),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => _navigateToEditMarks(assessment['id']),
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          assessment['title'],
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Chip(
-                          label: Text(
-                            assessment['type'].toString().toUpperCase(),
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 12,
-                            ),
-                          ),
-                          backgroundColor: widget.subjectColor,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Total Marks: ${assessment['total_marks']}',
-                      style: GoogleFonts.poppins(),
-                    ),
-                    SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Date: ${assessment['date']}',
-                          style: GoogleFonts.poppins(
-                            color: Colors.grey,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () => _navigateToEditMarks(assessment['id']),
-                          child: Text(
-                            'Edit Marks',
-                            style: GoogleFonts.poppins(
-                              color: widget.subjectColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+      body:
+          _isLoading
+              ? Center(child: CircularProgressIndicator())
+              : _assessments.isEmpty
+              ? Center(
+                child: Text(
+                  'No marked assessments found',
+                  style: GoogleFonts.poppins(fontSize: 16),
                 ),
+              )
+              : ListView.builder(
+                padding: EdgeInsets.all(16),
+                itemCount: _assessments.length,
+                itemBuilder: (context, index) {
+                  final assessment = _assessments[index];
+                  return Card(
+                    elevation: 2,
+                    margin: EdgeInsets.only(bottom: 16),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => _navigateToEditMarks(assessment['id']),
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  assessment['title'],
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                Chip(
+                                  label: Text(
+                                    assessment['type'].toString().toUpperCase(),
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  backgroundColor: widget.subjectColor,
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Total Marks: ${assessment['total_marks']}',
+                              style: GoogleFonts.poppins(),
+                            ),
+                            SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Date: ${assessment['date']}',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed:
+                                      () => _navigateToEditMarks(
+                                        assessment['id'],
+                                      ),
+                                  child: Text(
+                                    'Edit Marks',
+                                    style: GoogleFonts.poppins(
+                                      color: widget.subjectColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
-            ),
-          );
-        },
-      ),
     );
   }
 }

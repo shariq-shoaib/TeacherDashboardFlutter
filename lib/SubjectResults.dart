@@ -10,8 +10,7 @@ import 'MarkedAssessment.dart';
 class SubjectResultsScreen extends StatefulWidget {
   final Map<String, dynamic> subject;
 
-  const SubjectResultsScreen({Key? key, required this.subject})
-    : super(key: key);
+  const SubjectResultsScreen({super.key, required this.subject});
 
   @override
   _SubjectResultsScreenState createState() => _SubjectResultsScreenState();
@@ -227,7 +226,7 @@ class _SubjectResultsScreenState extends State<SubjectResultsScreen> {
                       style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
                     ),
                   );
-                }).toList(),
+                }),
               ],
               rows:
                   results.map((student) {
@@ -249,7 +248,7 @@ class _SubjectResultsScreenState extends State<SubjectResultsScreen> {
                               style: GoogleFonts.poppins(),
                             ),
                           );
-                        }).toList(),
+                        }),
                       ],
                     );
                   }).toList(),

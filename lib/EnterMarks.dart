@@ -10,12 +10,12 @@ class EnterMarksScreen extends StatefulWidget {
   final Color subjectColor;
 
   const EnterMarksScreen({
-    Key? key,
+    super.key,
     required this.assessmentId,
     required this.assessmentTitle,
     required this.totalMarks,
     required this.subjectColor,
-  }) : super(key: key);
+  });
 
   @override
   _EnterMarksScreenState createState() => _EnterMarksScreenState();
@@ -40,7 +40,9 @@ class _EnterMarksScreenState extends State<EnterMarksScreen> {
   Future<void> _fetchStudents() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl$studentsEndpoint?assessment=${widget.assessmentId}'),
+        Uri.parse(
+          '$baseUrl$studentsEndpoint?assessment=${widget.assessmentId}',
+        ),
       );
 
       if (response.statusCode == 200) {
@@ -59,9 +61,9 @@ class _EnterMarksScreenState extends State<EnterMarksScreen> {
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     }
   }
 
@@ -69,12 +71,13 @@ class _EnterMarksScreenState extends State<EnterMarksScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final marks = _students.map((student) {
-        return {
-          'student_id': student['id'],
-          'mark': int.tryParse(_markControllers[student['id']]!.text) ?? 0,
-        };
-      }).toList();
+      final marks =
+          _students.map((student) {
+            return {
+              'student_id': student['id'],
+              'mark': int.tryParse(_markControllers[student['id']]!.text) ?? 0,
+            };
+          }).toList();
 
       final response = await http.post(
         Uri.parse('$baseUrl$submitMarksEndpoint'),
@@ -94,9 +97,9 @@ class _EnterMarksScreenState extends State<EnterMarksScreen> {
         throw Exception('Failed to submit marks');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     } finally {
       setState(() => _isSubmitting = false);
     }
@@ -117,101 +120,101 @@ class _EnterMarksScreenState extends State<EnterMarksScreen> {
         elevation: 0,
         centerTitle: true,
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Total Marks: ${widget.totalMarks}',
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  'Students: ${_students.length}',
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _students.length,
-              itemBuilder: (context, index) {
-                final student = _students[index];
-                return Card(
-                  margin: EdgeInsets.only(bottom: 12),
-                  child: Padding(
+      body:
+          _isLoading
+              ? Center(child: CircularProgressIndicator())
+              : Column(
+                children: [
+                  Padding(
                     padding: EdgeInsets.all(16),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        CircleAvatar(
-                          child: Text(student['name'][0]),
-                        ),
-                        SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            student['name'],
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        Text(
+                          'Total Marks: ${widget.totalMarks}',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
                         ),
-                        SizedBox(
-                          width: 80,
-                          child: TextField(
-                            controller: _markControllers[student['id']],
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              labelText: 'Marks',
-                              border: OutlineInputBorder(),
-                            ),
+                        Text(
+                          'Students: ${_students.length}',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
                         ),
                       ],
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isSubmitting ? null : _submitMarks,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: widget.subjectColor,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _students.length,
+                      itemBuilder: (context, index) {
+                        final student = _students[index];
+                        return Card(
+                          margin: EdgeInsets.only(bottom: 12),
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                CircleAvatar(child: Text(student['name'][0])),
+                                SizedBox(width: 16),
+                                Expanded(
+                                  child: Text(
+                                    student['name'],
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 80,
+                                  child: TextField(
+                                    controller: _markControllers[student['id']],
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: 'Marks',
+                                      border: OutlineInputBorder(),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
-                child: _isSubmitting
-                    ? CircularProgressIndicator(color: Colors.white)
-                    : Text(
-                  'Submit Marks',
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                  Padding(
+                    padding: EdgeInsets.all(16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isSubmitting ? null : _submitMarks,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: widget.subjectColor,
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child:
+                            _isSubmitting
+                                ? CircularProgressIndicator(color: Colors.white)
+                                : Text(
+                                  'Submit Marks',
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

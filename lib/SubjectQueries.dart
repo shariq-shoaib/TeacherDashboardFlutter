@@ -5,8 +5,7 @@ import 'package:intl/intl.dart';
 class SubjectQueriesScreen extends StatefulWidget {
   final Map<String, dynamic> subject;
 
-  const SubjectQueriesScreen({Key? key, required this.subject})
-    : super(key: key);
+  const SubjectQueriesScreen({super.key, required this.subject});
 
   @override
   _SubjectQueriesScreenState createState() => _SubjectQueriesScreenState();
@@ -185,7 +184,7 @@ class _SubjectQueriesScreenState extends State<SubjectQueriesScreen> {
                   'No queries yet',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
-                    color: theme.colorScheme.onBackground.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
                   ),
                 ),
               )
@@ -258,7 +257,7 @@ class _SubjectQueriesScreenState extends State<SubjectQueriesScreen> {
                       date,
                       style: GoogleFonts.poppins(
                         fontSize: 12,
-                        color: theme.colorScheme.onBackground.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                   ],
@@ -272,7 +271,7 @@ class _SubjectQueriesScreenState extends State<SubjectQueriesScreen> {
             Text(
               query['question'],
               style: GoogleFonts.poppins(
-                color: theme.colorScheme.onBackground.withOpacity(0.8),
+                color: theme.colorScheme.onSurface.withOpacity(0.8),
               ),
             ),
 

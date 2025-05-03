@@ -5,10 +5,11 @@ import 'package:intl/intl.dart';
 class SubjectAttendanceScreen extends StatefulWidget {
   final Map<String, dynamic> subject;
 
-  const SubjectAttendanceScreen({Key? key, required this.subject}) : super(key: key);
+  const SubjectAttendanceScreen({super.key, required this.subject});
 
   @override
-  _SubjectAttendanceScreenState createState() => _SubjectAttendanceScreenState();
+  _SubjectAttendanceScreenState createState() =>
+      _SubjectAttendanceScreenState();
 }
 
 class _SubjectAttendanceScreenState extends State<SubjectAttendanceScreen> {
@@ -83,7 +84,7 @@ class _SubjectAttendanceScreenState extends State<SubjectAttendanceScreen> {
       students = _dummyStudents;
       // Initialize all as present by default
       attendanceStatus = {
-        for (var student in students) student['id']: 'present'
+        for (var student in students) student['id']: 'present',
       };
       isLoading = false;
     });
@@ -116,12 +117,10 @@ class _SubjectAttendanceScreenState extends State<SubjectAttendanceScreen> {
 
       // Update our dummy data with the new attendance
       final dateKey = DateFormat('yyyy-MM-dd').format(selectedDate);
-      _dummyAttendanceData[dateKey] = attendanceStatus.entries.map((entry) {
-        return {
-          'student_id': entry.key,
-          'status': entry.value,
-        };
-      }).toList();
+      _dummyAttendanceData[dateKey] =
+          attendanceStatus.entries.map((entry) {
+            return {'student_id': entry.key, 'status': entry.value};
+          }).toList();
     });
   }
 
@@ -142,7 +141,8 @@ class _SubjectAttendanceScreenState extends State<SubjectAttendanceScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final subjectColor = widget.subject['color'] ?? theme.primaryColor;
-    final presentCount = attendanceStatus.values.where((status) => status == 'present').length;
+    final presentCount =
+        attendanceStatus.values.where((status) => status == 'present').length;
     final absentCount = students.length - presentCount;
 
     return Scaffold(
@@ -161,24 +161,33 @@ class _SubjectAttendanceScreenState extends State<SubjectAttendanceScreen> {
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
         ),
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Column(
-        children: [
-          _buildDateSelector(theme, subjectColor),
-          _buildAttendanceSummary(presentCount, absentCount, subjectColor),
-          _buildQuickActions(theme, subjectColor),
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              itemCount: students.length,
-              itemBuilder: (context, index) => _buildStudentCard(
-                  students[index], theme, subjectColor),
-            ),
-          ),
-          _buildSubmitButton(theme, subjectColor),
-        ],
-      ),
+      body:
+          isLoading
+              ? Center(child: CircularProgressIndicator())
+              : Column(
+                children: [
+                  _buildDateSelector(theme, subjectColor),
+                  _buildAttendanceSummary(
+                    presentCount,
+                    absentCount,
+                    subjectColor,
+                  ),
+                  _buildQuickActions(theme, subjectColor),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: students.length,
+                      itemBuilder:
+                          (context, index) => _buildStudentCard(
+                            students[index],
+                            theme,
+                            subjectColor,
+                          ),
+                    ),
+                  ),
+                  _buildSubmitButton(theme, subjectColor),
+                ],
+              ),
     );
   }
 
@@ -215,9 +224,7 @@ class _SubjectAttendanceScreenState extends State<SubjectAttendanceScreen> {
               ),
               Text(
                 DateFormat('MMMM d, y').format(selectedDate),
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                ),
+                style: GoogleFonts.poppins(fontSize: 14),
               ),
             ],
           ),
@@ -265,15 +272,30 @@ class _SubjectAttendanceScreenState extends State<SubjectAttendanceScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildSummaryItem('Present', present, Icons.check_circle, Colors.green),
+          _buildSummaryItem(
+            'Present',
+            present,
+            Icons.check_circle,
+            Colors.green,
+          ),
           _buildSummaryItem('Absent', absent, Icons.cancel, Colors.red),
-          _buildSummaryItem('Total', students.length, Icons.people, subjectColor),
+          _buildSummaryItem(
+            'Total',
+            students.length,
+            Icons.people,
+            subjectColor,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryItem(String label, int count, IconData icon, Color color) {
+  Widget _buildSummaryItem(
+    String label,
+    int count,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
         Container(
@@ -350,14 +372,15 @@ class _SubjectAttendanceScreenState extends State<SubjectAttendanceScreen> {
   }
 
   Widget _buildStudentCard(
-      Map<String, dynamic> student, ThemeData theme, Color subjectColor) {
+    Map<String, dynamic> student,
+    ThemeData theme,
+    Color subjectColor,
+  ) {
     final isPresent = attendanceStatus[student['id']] == 'present';
 
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: EdgeInsets.only(bottom: 12),
       child: Padding(
         padding: EdgeInsets.all(12),
@@ -366,10 +389,7 @@ class _SubjectAttendanceScreenState extends State<SubjectAttendanceScreen> {
             CircleAvatar(
               backgroundColor: subjectColor.withOpacity(0.2),
               radius: 20,
-              child: Text(
-                student['avatar'],
-                style: TextStyle(fontSize: 16),
-              ),
+              child: Text(student['avatar'], style: TextStyle(fontSize: 16)),
             ),
             SizedBox(width: 16),
             Expanded(
@@ -378,9 +398,7 @@ class _SubjectAttendanceScreenState extends State<SubjectAttendanceScreen> {
                 children: [
                   Text(
                     student['name'],
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 2),
                   Text(
@@ -400,9 +418,12 @@ class _SubjectAttendanceScreenState extends State<SubjectAttendanceScreen> {
               onPressed: (index) {
                 setState(() {
                   attendanceStatus[student['id']] =
-                  index == 0 ? 'present' : 'absent';
+                      index == 0 ? 'present' : 'absent';
                 });
               },
+              fillColor: isPresent ? Colors.green[50] : Colors.red[50],
+              selectedColor: isPresent ? Colors.green : Colors.red,
+              color: theme.colorScheme.onSurface.withOpacity(0.6),
               children: [
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8),
@@ -425,9 +446,6 @@ class _SubjectAttendanceScreenState extends State<SubjectAttendanceScreen> {
                   ),
                 ),
               ],
-              fillColor: isPresent ? Colors.green[50] : Colors.red[50],
-              selectedColor: isPresent ? Colors.green : Colors.red,
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
             ),
           ],
         ),
@@ -449,22 +467,23 @@ class _SubjectAttendanceScreenState extends State<SubjectAttendanceScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: isSubmitting
-              ? SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-          )
-              : Text(
-            'Submit Attendance',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
+          child:
+              isSubmitting
+                  ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                  : Text(
+                    'Submit Attendance',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
         ),
       ),
     );

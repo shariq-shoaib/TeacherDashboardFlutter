@@ -9,13 +9,14 @@ import 'package:file_picker/file_picker.dart';
 class SubjectChatScreen extends StatefulWidget {
   final Map<String, dynamic> subject;
 
-  const SubjectChatScreen({Key? key, required this.subject}) : super(key: key);
+  const SubjectChatScreen({super.key, required this.subject});
 
   @override
   _SubjectChatScreenState createState() => _SubjectChatScreenState();
 }
 
-class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTickerProviderStateMixin {
+class _SubjectChatScreenState extends State<SubjectChatScreen>
+    with SingleTickerProviderStateMixin {
   List<Map<String, dynamic>> messages = [];
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -26,7 +27,6 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
   late Animation<double> _fadeAnimation;
   PlatformFile? _pickedFile; // To store the selected file
 
-
   @override
   void initState() {
     super.initState();
@@ -35,10 +35,7 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeIn,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
     _fetchMessages();
   }
@@ -65,9 +62,9 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading messages: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading messages: $e')));
     }
   }
 
@@ -100,9 +97,9 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
         throw Exception('Failed to send message');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error sending message: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error sending message: $e')));
       setState(() {
         messages.removeLast();
       });
@@ -142,9 +139,9 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error picking file: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error picking file: $e')));
     }
   }
 
@@ -161,33 +158,40 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
           children: [
             _buildChatHeader(theme, subjectColor),
             Expanded(
-              child: _isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : messages.isEmpty
-                  ? FadeTransition(
-                opacity: _fadeAnimation,
-                child: _buildEmptyState(theme),
-              )
-                  : ListView.builder(
-                controller: _scrollController,
-                padding: EdgeInsets.only(top: 8, bottom: 80),
-                itemCount: messages.length,
-                itemBuilder: (context, index) => SlideTransition(
-                  position: Tween<Offset>(
-                    begin: Offset(0, 0.5),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: _animationController,
-                    curve: Interval(
-                      0.1 * index,
-                      1.0,
-                      curve: Curves.easeOut,
-                    ),
-                  )),
-                  child: _buildMessageBubble(
-                      messages[index], theme, subjectColor),
-                ),
-              ),
+              child:
+                  _isLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : messages.isEmpty
+                      ? FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: _buildEmptyState(theme),
+                      )
+                      : ListView.builder(
+                        controller: _scrollController,
+                        padding: EdgeInsets.only(top: 8, bottom: 80),
+                        itemCount: messages.length,
+                        itemBuilder:
+                            (context, index) => SlideTransition(
+                              position: Tween<Offset>(
+                                begin: Offset(0, 0.5),
+                                end: Offset.zero,
+                              ).animate(
+                                CurvedAnimation(
+                                  parent: _animationController,
+                                  curve: Interval(
+                                    0.1 * index,
+                                    1.0,
+                                    curve: Curves.easeOut,
+                                  ),
+                                ),
+                              ),
+                              child: _buildMessageBubble(
+                                messages[index],
+                                theme,
+                                subjectColor,
+                              ),
+                            ),
+                      ),
             ),
             _buildMessageInput(theme, subjectColor),
           ],
@@ -197,8 +201,8 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
         onPressed: () {
           // Your navigation action
         },
-        child: Icon(Icons.navigation),
         backgroundColor: subjectColor,
+        child: Icon(Icons.navigation),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
     );
@@ -249,7 +253,7 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
           Icon(
             Icons.forum_outlined,
             size: 80,
-            color: theme.colorScheme.onBackground.withOpacity(0.3),
+            color: theme.colorScheme.onSurface.withOpacity(0.3),
           ),
           SizedBox(height: 16),
           Text(
@@ -257,7 +261,7 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w500,
-              color: theme.colorScheme.onBackground.withOpacity(0.6),
+              color: theme.colorScheme.onSurface.withOpacity(0.6),
             ),
           ),
           SizedBox(height: 8),
@@ -265,7 +269,7 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
             'Start the conversation!',
             style: GoogleFonts.poppins(
               fontSize: 14,
-              color: theme.colorScheme.onBackground.withOpacity(0.4),
+              color: theme.colorScheme.onSurface.withOpacity(0.4),
             ),
           ),
         ],
@@ -274,7 +278,10 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
   }
 
   Widget _buildMessageBubble(
-      Map<String, dynamic> message, ThemeData theme, Color subjectColor) {
+    Map<String, dynamic> message,
+    ThemeData theme,
+    Color subjectColor,
+  ) {
     final isTeacher = message['is_teacher'] ?? false;
     final timestamp = DateTime.parse(message['timestamp']);
     final timeString = DateFormat('h:mm a').format(timestamp);
@@ -284,17 +291,16 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
         alignment: isTeacher ? Alignment.centerRight : Alignment.centerLeft,
         child: ConstrainedBox(
           constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.8),
+            maxWidth: MediaQuery.of(context).size.width * 0.8,
+          ),
           child: Column(
             crossAxisAlignment:
-            isTeacher ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                isTeacher ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
               Container(
                 padding: EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: isTeacher
-                      ? subjectColor
-                      : theme.colorScheme.surface,
+                  color: isTeacher ? subjectColor : theme.colorScheme.surface,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(isTeacher ? 18 : 0),
                     topRight: Radius.circular(isTeacher ? 0 : 18),
@@ -313,7 +319,8 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
                 child: Text(
                   message['text'],
                   style: GoogleFonts.poppins(
-                    color: isTeacher ? Colors.white : theme.colorScheme.onSurface,
+                    color:
+                        isTeacher ? Colors.white : theme.colorScheme.onSurface,
                     fontSize: 15,
                   ),
                 ),
@@ -325,7 +332,7 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
                   timeString,
                   style: GoogleFonts.poppins(
                     fontSize: 11,
-                    color: theme.colorScheme.onBackground.withOpacity(0.4),
+                    color: theme.colorScheme.onSurface.withOpacity(0.4),
                   ),
                 ),
               ),
@@ -337,130 +344,134 @@ class _SubjectChatScreenState extends State<SubjectChatScreen> with SingleTicker
   }
 
   Widget _buildMessageInput(ThemeData theme, Color subjectColor) {
-    return Container(
+    return Padding(
       padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-        top: 8,
+        bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 2,
-            offset: Offset(0, -2),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          border: Border(
+            top: BorderSide(
+              color: theme.dividerColor.withOpacity(0.1),
+              width: 1,
+            ),
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          if (_pickedFile != null)
-            Container(
-              padding: EdgeInsets.all(8),
-              margin: EdgeInsets.only(bottom: 8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_pickedFile != null)
+                _buildFileAttachmentIndicator(theme, subjectColor),
+              Row(
                 children: [
-                  Icon(Icons.insert_drive_file, color: subjectColor),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _pickedFile!.name,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(),
+                  // Attachment Button
+                  Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: Icon(Icons.attach_file, color: subjectColor),
+                      onPressed: _pickFile,
+                      padding: EdgeInsets.all(12),
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.close, size: 18),
-                    onPressed: () {
-                      setState(() {
-                        _pickedFile = null;
-                      });
-                    },
+                  SizedBox(width: 8),
+                  // Message Input Field
+                  Expanded(
+                    child: Container(
+                      constraints: BoxConstraints(
+                        maxHeight:
+                            120, // Limits the height for multi-line input
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceVariant.withOpacity(
+                          0.2,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: TextField(
+                        controller: _messageController,
+                        decoration: InputDecoration(
+                          hintText: 'Type your message...',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.4),
+                          ),
+                        ),
+                        style: theme.textTheme.bodyMedium,
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  // Send Button
+                  Container(
+                    decoration: BoxDecoration(
+                      color: subjectColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      icon:
+                          _isSending
+                              ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                              : Icon(Icons.send_rounded, color: Colors.white),
+                      onPressed: _isSending ? null : _sendMessage,
+                      padding: EdgeInsets.all(12),
+                    ),
                   ),
                 ],
               ),
-            ),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: theme.colorScheme.outline.withOpacity(0.1),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: TextField(
-                          controller: _messageController,
-                          decoration: InputDecoration(
-                            hintText: 'Type your message...',
-                            border: InputBorder.none,
-                            hintStyle: GoogleFonts.poppins(
-                              color: theme.colorScheme.onSurface.withOpacity(0.5),
-                            ),
-                          ),
-                          style: GoogleFonts.poppins(),
-                          maxLines: null,
-                          onSubmitted: (_) => _sendMessage(),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.attach_file, color: subjectColor),
-                        onPressed: _pickFile,
-                      ),
-                      SizedBox(width: 4),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(width: 10),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: subjectColor,
-                  boxShadow: [
-                    BoxShadow(
-                      color: subjectColor.withOpacity(0.3),
-                      blurRadius: 8,
-                      spreadRadius: 1,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: _isSending ? null : _sendMessage,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: _isSending
-                          ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                          : Icon(Icons.send_rounded, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFileAttachmentIndicator(ThemeData theme, Color subjectColor) {
+    return Container(
+      padding: EdgeInsets.all(12),
+      margin: EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.insert_drive_file, color: subjectColor, size: 20),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _pickedFile!.name,
+              style: theme.textTheme.bodySmall,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.close, size: 18),
+            onPressed: () => setState(() => _pickedFile = null),
+            padding: EdgeInsets.zero,
+            constraints: BoxConstraints(),
           ),
         ],
       ),

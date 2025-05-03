@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'SubjectDetails.dart';
 
 class SubjectsScreen extends StatefulWidget {
+  const SubjectsScreen({super.key});
+
   @override
   _SubjectsScreenState createState() => _SubjectsScreenState();
 }
@@ -19,7 +21,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
       'icon': Icons.calculate,
       'students': 45,
       'classes': ['10-A', '10-B'],
-      'schedule': 'Mon/Wed 8:00-9:30'
+      'schedule': 'Mon/Wed 8:00-9:30',
     },
     {
       'name': 'Physics',
@@ -28,7 +30,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
       'icon': Icons.science,
       'students': 32,
       'classes': ['11-A'],
-      'schedule': 'Tue/Thu 10:00-11:30'
+      'schedule': 'Tue/Thu 10:00-11:30',
     },
     {
       'name': 'Computer Science',
@@ -37,7 +39,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
       'icon': Icons.computer,
       'students': 28,
       'classes': ['12-A', '12-B'],
-      'schedule': 'Fri 1:00-3:00'
+      'schedule': 'Fri 1:00-3:00',
     },
     {
       'name': 'Chemistry',
@@ -46,7 +48,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
       'icon': Icons.science_outlined,
       'students': 36,
       'classes': ['11-B'],
-      'schedule': 'Mon/Wed 2:00-3:30'
+      'schedule': 'Mon/Wed 2:00-3:30',
     },
     {
       'name': 'Biology',
@@ -55,7 +57,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
       'icon': Icons.eco,
       'students': 42,
       'classes': ['10-C'],
-      'schedule': 'Tue/Thu 8:00-9:30'
+      'schedule': 'Tue/Thu 8:00-9:30',
     },
   ];
 
@@ -85,15 +87,20 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          subjects = data.map((item) => {
-            'name': item['name'],
-            'code': item['code'],
-            'color': _parseColor(item['color']),
-            'icon': _parseIcon(item['icon']),
-            'students': item['students_count'],
-            'classes': List<String>.from(item['classes']),
-            'schedule': item['schedule']
-          }).toList();
+          subjects =
+              data
+                  .map(
+                    (item) => {
+                      'name': item['name'],
+                      'code': item['code'],
+                      'color': _parseColor(item['color']),
+                      'icon': _parseIcon(item['icon']),
+                      'students': item['students_count'],
+                      'classes': List<String>.from(item['classes']),
+                      'schedule': item['schedule'],
+                    },
+                  )
+                  .toList();
         });
       } else {
         setState(() {
@@ -121,11 +128,16 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
 
   IconData _parseIcon(String iconName) {
     switch (iconName) {
-      case 'science': return Icons.science;
-      case 'computer': return Icons.computer;
-      case 'calculate': return Icons.calculate;
-      case 'eco': return Icons.eco;
-      default: return Icons.school;
+      case 'science':
+        return Icons.science;
+      case 'computer':
+        return Icons.computer;
+      case 'calculate':
+        return Icons.calculate;
+      case 'eco':
+        return Icons.eco;
+      default:
+        return Icons.school;
     }
   }
 
@@ -138,25 +150,24 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: Text('My Subjects',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.bold,
-              fontSize: 22,
-              color: Colors.white,
-            )),
+        title: Text(
+          'My Subjects',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            color: Colors.white,
+          ),
+        ),
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.primary,
         centerTitle: true,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
         ),
         actions: [
           IconButton(
@@ -165,46 +176,52 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
           ),
         ],
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : errorMessage.isNotEmpty
-          ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              errorMessage,
-              style: GoogleFonts.poppins(color: Colors.red),
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _fetchSubjects,
-              child: Text('Retry'),
-            ),
-          ],
-        ),
-      )
-          : SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Summary Card
-            _buildSummaryCard(context),
-            SizedBox(height: 24),
+      body:
+          isLoading
+              ? Center(child: CircularProgressIndicator())
+              : errorMessage.isNotEmpty
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      errorMessage,
+                      style: GoogleFonts.poppins(color: Colors.red),
+                    ),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _fetchSubjects,
+                      child: Text('Retry'),
+                    ),
+                  ],
+                ),
+              )
+              : SingleChildScrollView(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    // Summary Card
+                    _buildSummaryCard(context),
+                    SizedBox(height: 24),
 
-            // Subjects List
-            _buildSubjectsList(),
-          ],
-        ),
-      ),
+                    // Subjects List
+                    _buildSubjectsList(),
+                  ],
+                ),
+              ),
     );
   }
 
   Widget _buildSummaryCard(BuildContext context) {
     final totalSubjects = subjects.length;
-    final int totalStudents = subjects.fold<int>(0, (sum, subject) => sum + (subject['students'] as int));
-    final int totalClasses = subjects.fold<int>(0, (sum, subject) => sum + (subject['classes'] as List).length);
-
+    final int totalStudents = subjects.fold<int>(
+      0,
+      (sum, subject) => sum + (subject['students'] as int),
+    );
+    final int totalClasses = subjects.fold<int>(
+      0,
+      (sum, subject) => sum + (subject['classes'] as List).length,
+    );
 
     return Container(
       padding: EdgeInsets.all(20),
@@ -284,9 +301,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
   Widget _buildSubjectCard(Map<String, dynamic> subject) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () => _navigateToSubjectDetail(subject),
@@ -304,10 +319,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                       color: subject['color'].withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      subject['icon'],
-                      color: subject['color'],
-                    ),
+                    child: Icon(subject['icon'], color: subject['color']),
                   ),
                   SizedBox(width: 16),
                   Expanded(
@@ -324,9 +336,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                         ),
                         Text(
                           subject['code'],
-                          style: GoogleFonts.poppins(
-                            color: Colors.grey[600],
-                          ),
+                          style: GoogleFonts.poppins(color: Colors.grey[600]),
                         ),
                       ],
                     ),
@@ -351,9 +361,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                   SizedBox(width: 8),
                   Text(
                     subject['schedule'],
-                    style: GoogleFonts.poppins(
-                      color: Colors.grey[600],
-                    ),
+                    style: GoogleFonts.poppins(color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -364,9 +372,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                   SizedBox(width: 8),
                   Text(
                     subject['classes'].join(', '),
-                    style: GoogleFonts.poppins(
-                      color: Colors.grey[600],
-                    ),
+                    style: GoogleFonts.poppins(color: Colors.grey[600]),
                   ),
                 ],
               ),

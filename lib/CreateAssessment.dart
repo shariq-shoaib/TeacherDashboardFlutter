@@ -8,10 +8,10 @@ class CreateAssessmentScreen extends StatefulWidget {
   final Color subjectColor;
 
   const CreateAssessmentScreen({
-    Key? key,
+    super.key,
     required this.subjectCode,
     required this.subjectColor,
-  }) : super(key: key);
+  });
 
   @override
   _CreateAssessmentScreenState createState() => _CreateAssessmentScreenState();
@@ -50,9 +50,9 @@ class _CreateAssessmentScreenState extends State<CreateAssessmentScreen> {
         throw Exception('Failed to create assessment');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -115,18 +115,9 @@ class _CreateAssessmentScreenState extends State<CreateAssessmentScreen> {
                     value: 'assignment',
                     child: Text('Assignment'),
                   ),
-                  DropdownMenuItem(
-                    value: 'quiz',
-                    child: Text('Quiz'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'exam',
-                    child: Text('Exam'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'project',
-                    child: Text('Project'),
-                  ),
+                  DropdownMenuItem(value: 'quiz', child: Text('Quiz')),
+                  DropdownMenuItem(value: 'exam', child: Text('Exam')),
+                  DropdownMenuItem(value: 'project', child: Text('Project')),
                 ],
                 onChanged: (value) {
                   setState(() => _assessmentType = value!);
@@ -163,15 +154,16 @@ class _CreateAssessmentScreenState extends State<CreateAssessmentScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: _isLoading
-                      ? CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                    'Create Assessment',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
+                  child:
+                      _isLoading
+                          ? CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                            'Create Assessment',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                 ),
               ),
             ],

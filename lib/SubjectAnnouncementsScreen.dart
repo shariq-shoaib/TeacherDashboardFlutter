@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 class SubjectAnnouncementsScreen extends StatelessWidget {
   final Map<String, dynamic> subject;
 
-  SubjectAnnouncementsScreen({required this.subject});
+  const SubjectAnnouncementsScreen({super.key, required this.subject});
 
   @override
   Widget build(BuildContext context) {

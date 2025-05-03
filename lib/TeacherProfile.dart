@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
@@ -28,9 +30,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = false;
   bool _showChangePassword = false;
   final _passwordFormKey = GlobalKey<FormState>();
-  final TextEditingController _currentPasswordController = TextEditingController();
+  final TextEditingController _currentPasswordController =
+      TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   @override
   void initState() {
@@ -55,9 +59,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         throw Exception('Failed to load profile');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading profile: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading profile: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -78,9 +82,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         throw Exception('Logout failed');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error during logout: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error during logout: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -112,12 +116,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _newPasswordController.clear();
         _confirmPasswordController.clear();
       } else {
-        throw Exception(json.decode(response.body)['message'] ?? 'Password change failed');
+        throw Exception(
+          json.decode(response.body)['message'] ?? 'Password change failed',
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -202,9 +208,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildProfileCard(ThemeData theme) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: EdgeInsets.all(20),
         child: Column(
@@ -233,16 +237,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary,
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 2,
-                    ),
+                    border: Border.all(color: Colors.white, width: 2),
                   ),
-                  child: Icon(
-                    Icons.edit,
-                    size: 18,
-                    color: Colors.white,
-                  ),
+                  child: Icon(Icons.edit, size: 18, color: Colors.white),
                 ),
               ],
             ),
@@ -276,7 +273,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildProfileStat(
                   theme,
                   label: 'Member Since',
-                  value: _userProfile['joinDate'].split('-')[0], // Just show year
+                  value:
+                      _userProfile['joinDate'].split('-')[0], // Just show year
                   icon: Icons.calendar_today,
                 ),
               ],
@@ -287,7 +285,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileStat(ThemeData theme, {required String label, required String value, required IconData icon}) {
+  Widget _buildProfileStat(
+    ThemeData theme, {
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
     return Column(
       children: [
         Container(
@@ -296,18 +299,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: theme.colorScheme.primary.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            icon,
-            color: theme.colorScheme.primary,
-          ),
+          child: Icon(icon, color: theme.colorScheme.primary),
         ),
         SizedBox(height: 8),
         Text(
           value,
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         SizedBox(height: 4),
         Text(
@@ -360,35 +357,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             onPressed: _logout,
-            child: _isLoading
-                ? SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
-            )
-                : Text(
-              'Logout',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
+            child:
+                _isLoading
+                    ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                    : Text(
+                      'Logout',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildProfileActionTile(ThemeData theme, {required IconData icon, required String title, required VoidCallback onTap}) {
+  Widget _buildProfileActionTile(
+    ThemeData theme, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return Card(
       margin: EdgeInsets.only(bottom: 12),
       elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         leading: Container(
           width: 40,
@@ -397,16 +398,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: theme.colorScheme.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            color: theme.colorScheme.primary,
-          ),
+          child: Icon(icon, color: theme.colorScheme.primary),
         ),
         title: Text(
           title,
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w500,
-          ),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
         ),
         trailing: Icon(
           Icons.chevron_right,
@@ -420,9 +416,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildChangePasswordForm(ThemeData theme) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: EdgeInsets.all(20),
         child: Form(
@@ -442,7 +436,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   IconButton(
                     icon: Icon(Icons.close),
-                    onPressed: () => setState(() => _showChangePassword = false),
+                    onPressed:
+                        () => setState(() => _showChangePassword = false),
                   ),
                 ],
               ),
@@ -515,22 +510,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   onPressed: _isLoading ? null : _changePassword,
-                  child: _isLoading
-                      ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                      : Text(
-                    'Update Password',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
+                  child:
+                      _isLoading
+                          ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                          : Text(
+                            'Update Password',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                 ),
               ),
             ],

@@ -4,8 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 class AnnouncementScreen extends StatelessWidget {
   final List<Map<String, dynamic>> announcements;
 
-  const AnnouncementScreen({Key? key, required this.announcements})
-    : super(key: key);
+  const AnnouncementScreen({super.key, required this.announcements});
 
   @override
   Widget build(BuildContext context) {

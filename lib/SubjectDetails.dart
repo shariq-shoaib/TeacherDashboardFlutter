@@ -11,8 +11,7 @@ import 'dart:ui';
 class SubjectDashboardScreen extends StatefulWidget {
   final Map<String, dynamic> subject;
 
-  const SubjectDashboardScreen({Key? key, required this.subject})
-    : super(key: key);
+  const SubjectDashboardScreen({super.key, required this.subject});
 
   @override
   _SubjectDashboardScreenState createState() => _SubjectDashboardScreenState();
